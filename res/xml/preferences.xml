@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+	<!-- Account settings --> 
+	<PreferenceCategory android:title="@string/pref_account_settings">
+
+		<EditTextPreference
+				android:id="@+id/pref_user_name" 
+				android:title="@string/pref_user_name" 
+				android:summary="@string/pref_user_name_summary"/>
+
+		<EditTextPreference
+				android:id="@+id/pref_password" 
+				android:title="@string/pref_password"/>
+
+		<CheckBoxPreference
+			android:defaultValue="false" 
+			android:title="@string/pref_keep_password" 
+			android:summary="@string/pref_keep_password_summary">
+		</CheckBoxPreference>
+
+		<EditTextPreference 
+				android:id="@+id/pref_resource" 
+				android:title="@string/pref_resource" 
+				android:summary="@string/pref_resource_summary"/>
+
+		<EditTextPreference 
+				android:id="@+id/pref_server" 
+				android:title="@string/pref_server" 
+				android:summary="@string/pref_server_summary"/>
+
+		<EditTextPreference 
+				android:id="@+id/pref_port"  
+				android:title="@string/pref_port" 
+				android:summary="@string/pref_port_summary"/>
+
+	</PreferenceCategory>
+
+	<!-- About --> 
+	<PreferenceCategory android:title="@string/pref_about">
+		
+		<Preference 
+				android:selectable="false" 
+				android:enabled="true" 
+				android:key="example_key" 
+				android:title="@string/pref_version" 
+				android:summary="@string/pref_version_summary"/>
+	
+		<Preference 
+				android:selectable="false" 
+				android:enabled="true" 
+				android:key="example_key" 
+				android:title="@string/pref_author" 
+				android:summary="@string/pref_author_summary"/>
+	
+	</PreferenceCategory>
+
+</PreferenceScreen>

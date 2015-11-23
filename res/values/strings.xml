@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+	<!-- Main -->
+	<string name="app_name">jabberClient</string>
+	
+	<!-- Activities -->
+	<string name="act_list_conversations">Contacts</string>
+	<string name="act_list_contacts">Conversations</string>
+	<string name="act_preferences">Preferences</string>
+	<string name="act_conversation">Conversation</string>
+
+	<!-- Tabs -->
+	<string name="tab_contacts">Contacts</string>
+	<string name="tab_conversations">Conversations</string>
+
+	<!-- Option menu -->
+	<string name="opt_start_conversation">Start conversation</string>
+	<string name="opt_add_contact">Add contact</string>
+	<string name="opt_add_conference">Add conference</string>
+	<string name="opt_set_status">Set status</string>
+	<string name="opt_settings">Settings</string>
+
+	<!-- Conversation activity -->
+	<string name="conv_history">History</string>
+	<string name="conv_message">Message</string>
+	<string name="conv_send">Send</string>
+	
+	<!-- Preferences activity -->
+	<string name="pref_account_settings">Account settings</string>
+	<string name="pref_user_name">Username</string>
+	<string name="pref_user_name_summary">Username description</string>
+	<string name="pref_password">Password</string>
+	<string name="pref_keep_password">Keep password</string>
+	<string name="pref_keep_password_summary">Keep password description</string>
+	<string name="pref_resource">Resource</string>
+	<string name="pref_resource_summary">Resource description</string>
+	<string name="pref_server">Server</string>
+	<string name="pref_server_summary">Server description</string>
+	<string name="pref_port">Port</string>
+	<string name="pref_port_summary">Port description</string>
+
+	<string name="pref_about">About</string>
+	<string name="pref_version">Version</string>
+	<string name="pref_version_summary">Version description</string>
+	<string name="pref_author">Author</string>
+	<string name="pref_author_summary">Author description</string>
+
+</resources>

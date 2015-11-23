@@ -1,0 +1,27 @@
+# gradle directory
+build/
+.gradle
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# java class files
+*.class
+
+# build application files
+*.jar
+*.apk
+*.ap_
+
+# project files
+.classpath
+.project
+.metadata
+.settings
+
+# generated files
+bin/
+gen/
+
+# some other
+*.bak

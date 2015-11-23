@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+	<item 
+		android:id="@+id/opt_start_conversation" 
+		android:title="@string/opt_start_conversation"/>
+	
+	<item 
+		android:id="@+id/opt_add_contact" 
+		android:title="@string/opt_add_contact"/>
+
+	<item 
+		android:id="@+id/opt_add_conference" 
+		android:title="@string/opt_add_conference"/>
+
+	<item 
+		android:id="@+id/opt_set_status" 
+		android:title="@string/opt_set_status"/>
+
+	<item 
+		android:id="@+id/opt_settings"
+		android:title="@string/opt_settings"/>
+
+</menu>
