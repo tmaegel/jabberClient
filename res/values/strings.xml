@@ -3,7 +3,7 @@
 
 	<!-- Main -->
 	<string name="app_name">jabberClient</string>
-	
+
 	<!-- Activities -->
 	<string name="act_list_conversations">Contacts</string>
 	<string name="act_list_contacts">Conversations</string>
@@ -24,8 +24,8 @@
 	<!-- Conversation activity -->
 	<string name="conv_history">History</string>
 	<string name="conv_message">Message</string>
-	<string name="conv_send">Send</string>
-	
+	<string name="conv_input_text">Message</string>
+
 	<!-- Preferences activity -->
 	<string name="pref_account_settings">Account settings</string>
 	<string name="pref_user_name">Username</string>

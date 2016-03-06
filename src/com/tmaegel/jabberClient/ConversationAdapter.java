@@ -21,7 +21,7 @@ public class ConversationAdapter extends ArrayAdapter {
 	private TextView singleMessage;
 	private LinearLayout singleMessageContainer;
 	private List<Message> history = new ArrayList();
-	
+
 	public ConversationAdapter(Context context, int resourceId) {
 		super(context, resourceId);
 		this.context = context;
@@ -38,19 +38,26 @@ public class ConversationAdapter extends ArrayAdapter {
 		singleMessageContainer = (LinearLayout)row.findViewById(R.id.conv_single_message_container);
 		Message msg = getItem(position);
 		singleMessage = (TextView)row.findViewById(R.id.conv_single_message);
-		singleMessage.setText(msg.message);
+		singleMessage.setText(msg.getMessage());
 		// chatText.setBackgroundResource(chatMessageObj.left ? R.drawable.bubble_a : R.drawable.bubble_b);
 		singleMessageContainer.setGravity(msg.left ? Gravity.LEFT : Gravity.RIGHT);
-		
+
 		return row;
 	}
-
-	/** add message to container and to list */
-	public void add(Message msg) {
-		history.add(msg);
-		super.add(msg);
-	}
 	
+	/** add message to container and to list */
+	public void addMessageToHistory(Message msg, boolean local) {
+		/** is local true, message is sending */
+		if(local == true) {
+			history.add(msg);
+			super.add(msg);
+			MainActivity.net.sendMessage("user2@localhost", msg.getMessage());
+		} else {
+			history.add(msg);
+			super.add(msg);
+		}
+	}
+
 	/** return message object */
 	public Message getItem(int index) {
 		return history.get(index);

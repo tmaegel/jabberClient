@@ -1,45 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout 
-	xmlns:android="http://schemas.android.com/apk/res/android" 
-	android:layout_width="match_parent" 
-	android:layout_height="match_parent" 
-	android:orientation="vertical" >
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:orientation="vertical">
 
 	<ListView
 		android:id="@+id/conv_history"
 		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
+ 		android:layout_height="0dp"
+		android:layout_weight="1"
+		android:paddingTop="8dp"
+		android:paddingBottom="8dp"
 		android:dividerHeight="0dp"
-		android:divider="@null"/>
+		android:divider="@null"
+		android:background="#e4e4e4"/>
 
-	<RelativeLayout
-		android:id="@+id/conv_form"
+	<EditText
+		android:id="@+id/conv_input_message"
+		android:hint="@string/conv_input_text"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		android:layout_alignParentBottom="true"
-		android:layout_alignParentLeft="true"
-		android:orientation="vertical" >
+		android:inputType="textMultiLine"
+		android:background="@null"
+		android:padding="10dp"
+		android:ems="10"/>
 
-		<EditText
-			android:id="@+id/conv_input_message"
-			android:layout_toLeftOf="@+id/conv_send"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:inputType="textMultiLine"
-			android:ems="10"
-			android:layout_alignParentBottom="true"
-			android:layout_alignParentLeft="true"
-			android:layout_alignParentStart="true"/>
+	<ImageButton
+		android:id="@+id/conv_send"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_gravity="right"
+		android:layout_margin="3dip"
+		android:src="@drawable/ic_send_black_36dp"/>
 
-		<Button
-			android:id="@+id/conv_send"
-			android:text="@string/conv_send"
-			android:layout_alignBottom="@+id/conv_input_message"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:layout_alignParentRight="true"
-			android:layout_alignParentEnd="true"/>
-	
-	</RelativeLayout>
-
-</RelativeLayout>
+</LinearLayout>
