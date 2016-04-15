@@ -1,5 +1,7 @@
 package com.tmaegel.jabberClient;
 
+import com.tmaegel.jabberClient.Constants;
+
 import android.os.Bundle;
 
 import android.util.Log;
@@ -44,9 +46,9 @@ public class MainActivity /*extends TabActivity*/ extends ListActivity {
 
 	// intents
 	public static Intent convInt;
+	public static Intent addContInt;
+	public static Intent setStatInt;
 	public static Intent prefInt;
-
-	private static final String TAG = "jabberClient";
 	
 	public static List<Contact> contactList = new ArrayList();
 
@@ -60,28 +62,31 @@ public class MainActivity /*extends TabActivity*/ extends ListActivity {
 
 		// database
 		dbCon = new SQLController(main);
-		// dbCon.insert("test1@localhost", "TEST1", "GROUP A");
-		// dbCon.insert("test2@localhost", "TEST2", "GROUP B");
-		// dbCon.insert("test3@localhost", "TEST3", "GROUP C");
+		// dbCon.insert("user1@localhost", "TEST1", "GROUP A");
+		// dbCon.insert("user2@localhost", "TEST2", "GROUP B")
 		contactList = dbCon.fetch();
 
 		content = (TextView)findViewById(R.id.contact);
 
 		String[] elements = new String[MainActivity.contactList.size()];
 		for(int i = 0; i < MainActivity.contactList.size(); i++) {
-			elements[i] = MainActivity.contactList.get(i).getName() + " (" + MainActivity.contactList.get(i).getGroup() + ")";
+			elements[i] = MainActivity.contactList.get(i).getName();
 		}
 		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, elements);
 		// Assign adapter to list
 		setListAdapter(adapter);
 		
 		convInt = new Intent(this, ConversationActivity.class);
+		addContInt = new Intent(this, AddContactActivity.class);
+		setStatInt = new Intent(this, SetStatusActivity.class);
 		prefInt = new Intent(this, PreferencesActivity.class);
 
 		getListView().setOnItemClickListener(new OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				//Intent convActivity = new Intent(this, convActivity.class);
+				String jid = ((TextView)view).getText().toString();
+				convInt.putExtra("jid", jid);
 				startActivity(convInt);
 			}
 		});
@@ -90,11 +95,11 @@ public class MainActivity /*extends TabActivity*/ extends ListActivity {
 		ConnectivityManager connMgr = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 		if(networkInfo != null && networkInfo.isConnected()) {
-			Log.i(TAG, "Network is ready");
+			Log.i(Constants.LOG_TAG, "Network is ready");
 			net = new Network();
     		net.execute(/*sleepTime*/);		
 		} else {
-			Log.i(TAG, "No network available");
+			Log.i(Constants.LOG_TAG, "No network available");
 		}
 	}
 
@@ -113,19 +118,20 @@ public class MainActivity /*extends TabActivity*/ extends ListActivity {
 		switch (item.getItemId()) {
 			/** Start conversation */
 			case R.id.opt_start_conversation:
+				convInt.putExtra("jid", "0");
 				startActivity(convInt);
 				return true;
 			/** Add contact */
 			case R.id.opt_add_contact:
-
+				startActivity(addContInt);
 				return true;
 			/** Add conversation */
-			case R.id.opt_add_conference:
+			/*case R.id.opt_add_conference:
 
-				return true;
+				return true;*/
 			/** Set status */
 			case R.id.opt_set_status:
-
+				startActivity(setStatInt);
 				return true;
 			/** Preferences */
 			case R.id.opt_settings:

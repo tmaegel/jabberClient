@@ -1,5 +1,7 @@
 package com.tmaegel.jabberClient;
 
+import com.tmaegel.jabberClient.Constants;
+
 import android.os.Bundle;
 import android.os.AsyncTask;
 
@@ -20,7 +22,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.InetAddress;
 
-public class Network extends AsyncTask<String, Message, String> {
+public class Network extends AsyncTask<String, Stream, String> {
 
 	// private references
 	private Socket socket;
@@ -39,7 +41,10 @@ public class Network extends AsyncTask<String, Message, String> {
 
 	static private String uft8null = "\\x00"; // Use for PLAIN authentifaction
 
-	// Authentifaction
+	// Account information
+	private String fullJid;
+
+	// Authentifaction (TEST)
 	private String senderUser = "user1";
 	private String receiverUser = "user2";
 	private String password = "123456";
@@ -50,6 +55,7 @@ public class Network extends AsyncTask<String, Message, String> {
 	private String xmlns_stream = "http://etherx.jabber.org/streams";
 
 	private boolean connected = false;
+	private boolean initialized = false;
 	
 	@Override
 	protected String doInBackground(String... params) {
@@ -64,10 +70,18 @@ public class Network extends AsyncTask<String, Message, String> {
 		sendThread = new Thread(new Runnable() {
 		    public void run() {
 		    	try {
+		    		int waitingPeriod = 100;
 				    while(connected) {
-				    	// Log.d("jabberClient", "Sending thread...");
-				    	// Write some text in the loop
-						// sendMessage(receiverUser + "@" + host, "loop message");
+				    
+				    	// Get roster
+				    	// @todo bad  solution
+				    	while(waitingPeriod >= 100 && isInitialized() == true) {
+							Stream obj = new Stream(Constants.ROSTER_REQUEST);
+							sendRequest(obj);
+							
+							waitingPeriod = 0;
+						}
+						waitingPeriod++;
 				    	
 				    	Thread.sleep(3000);
 				    }
@@ -84,9 +98,9 @@ public class Network extends AsyncTask<String, Message, String> {
 		    public void run() {
 		    	try {
 				    while(connected) {
-				        // Log.d("jabberClient", "Receiving thread...");
-				        // Receive some text in the loop
-						recvMessage();
+				    
+				        // Receive response in the loop
+						recvResponse();
 
 				        Thread.sleep(3000);
 				    }
@@ -154,9 +168,9 @@ public class Network extends AsyncTask<String, Message, String> {
 		Log.e("jabberClient", "exe onPreExecute()");
 	}
 	
-	protected void onProgressUpdate(Message... msg) {
+	protected void onProgressUpdate(Stream... obj) {
 		Log.e("jabberClient", "exe onProgressUpdate() ");
-		MainActivity.convAct.convAdapter.addMessageToHistory(msg[0], true);
+		MainActivity.convAct.convAdapter.addMessageToHistory(obj[0], false);
 	}
 
 	
@@ -171,60 +185,109 @@ public class Network extends AsyncTask<String, Message, String> {
 			writeStream("<stream:stream from='" + senderUser + "@" + host + "' to='" + host + "' version='1.0' xml:lang='" + lang + "' xmlns='" + xmlns + "' xmlns:stream='" + xmlns_stream + "'>");
 			// For Anonymous Authentifaction
 			// writeStream("<?xml version='1.0'?><stream:stream to='localhost' version='1.0' xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams'>");
-			readStream();
+			recvResponse();
+			
+			// Log.d("jabberClient", "" + readStream()); /** todo parsing STREAM:STREAM tag failed */
 
 			 // SASL Authentifaction: PLAIN
 			 String authStream = "\0" + senderUser + "\0" + password;
 			 Log.d("jabberClient", "authStream >> " + authStream);
 			 writeStream("<auth xmlns='urn:ietf:params:xml:ns:xmpp-sasl' mechanism='PLAIN'>" + Base64.encodeToString(authStream.getBytes("UTF-8"), 0) + "</auth>");
 			 //String encodeHandshake = xmlParser.parseStream(readStream());
-			 readStream();
+			 // readStream();
+			recvResponse();
+
 
 			writeStream("<stream:stream from='" + senderUser + "@" + host + "' to='" + host + "' version='1.0' xml:lang='" + lang + "' xmlns='" + xmlns + "' xmlns:stream='" + xmlns_stream + "'>");
-			readStream();
+			// Log.d("jabberClient", "" + readStream()); /** todo parsing STREAM:STREAM tag failed */
+			recvResponse();
 
 			// Resource binding, Server generate resource
 			writeStream("<iq id='yhc13a95' type='set'><bind xmlns='urn:ietf:params:xml:ns:xmpp-bind'/></iq>");
-			readStream();
+			recvResponse();
 			
 			Log.d("jabberClient", "Initialization success");
+			initialized = true;
 		} catch(Exception e) {
 			Log.e("jabberClient", "Error: Init stream", e);
 		}
 
 		return true;
 	}
-
+	
 	/**
-	 * @brief send message
-	 * @param to - Receiver
-	 * @param msg - Mesasge
+	 * @brief receive response
+	 * @todo: problems with to many messages
+	 * @todo: In welchen Schritt befinden wir uns? Übergabe eines TAGS um zu detektieren. Weil es mehrere IQ tags gibt, die unterschiedliches bewirken
 	 */
-	public void sendMessage(String to, String msg) {
-		try {
-			writeStream("<message to='" + to + "'><body>" + msg + "</body></message>");
-			Log.d("jabberClient", "Send message " + msg);
-		} catch(Exception e) {
-			Log.e("jabberClient", "Error: IO", e);
+	public void recvResponse() {
+		String stream = readStream();
+		// Log.d("jabberClient", "" + stream);
+		Stream obj = xmlParser.parseResponse(stream);
+		
+		if(obj != null) {
+			switch(obj.getObjectType()) {
+				case Constants.MESSAGE:
+					Log.d(Constants.LOG_TAG, "FROM: " + obj.getFrom() + ", TO: " + obj.getTo() + ", BODY: " + obj.getBody());
+					publishProgress(obj);
+					break;
+				case Constants.CHALLENGE:
+					Log.d(Constants.LOG_TAG, "CHALLENGE: " + obj.getBody());
+					break;
+				case Constants.IQ:
+					Log.d(Constants.LOG_TAG, "JID: " + obj.getBody());
+					fullJid = obj.getBody();
+					break;
+			}
+		} else {
+			Log.d(Constants.LOG_TAG, "Null object");
 		}
+		
 	}
-
+	
 	/**
-	 * @brief receive message
+	 * @brief send request
 	 * @todo: problems with to many messages
 	 */
-	public void recvMessage() {
-		String stream = readStream();
-		Log.d("jabberClient", "Receive message " + stream);
-		Message msg = xmlParser.parseMessage(stream);
-		publishProgress(msg);
+	public void sendRequest(Stream obj) {
+		/**< initial roster request **/
+		// <iq from='juliet@example.com/balcony' type='get' id='roster_1'><query xmlns='jabber:iq:roster'/></iq>
+		/**< add a roster item **/
+		// <iq from='juliet@example.com/balcony' type='set' id='roster_2'><query xmlns='jabber:iq:roster'><item jid='nurse@example.com' name='Nurse'><group>Servants</group></item></query></iq>
+		/**< update a roster item */
+		// <iq from='juliet@example.com/chamber' type='set' id='roster_3'><query xmlns='jabber:iq:roster'><item jid='romeo@example.net' name='Romeo' subscription='both'><group>Friends</group><group>Lovers</group></item></query></iq>
+		/**< delete a roster item */
+		// <iq from='juliet@example.com/balcony' type='set' id='roster_4'><query xmlns='jabber:iq:roster'><item jid='nurse@example.com' subscription='remove'/></query></iq>
+	
+		switch(obj.getObjectType()) {
+			/**
+			 * ROSTER
+			 */
+			case Constants.ROSTER_REQUEST:
+				/**
+				 * @todo generate rendom id
+				 */
+				Log.d(Constants.LOG_TAG, "Roster request");
+				writeStream("<iq from='" + fullJid + "' type='get' id='roster_1'><query xmlns='jabber:iq:roster'/></iq>");
+				break;
+			
+			/**
+			 * MESSAGE
+			 */
+			case Constants.MESSAGE:
+				Log.d(Constants.LOG_TAG, "Send message");
+				Log.d(Constants.LOG_TAG, "TO: " + obj.getTo() + ", BODY: " + obj.getBody());
+				writeStream("<message to='" + obj.getTo() + "'><body>" + obj.getBody() + "</body></message>");
+				break;
+		}
+	}
+	
+	/**
+	 * @brief a client's request for the server to modify (i.e., create, update, or delete) a roster item
+	 */
+	public void setRoster(/*String from, String jid*/) {
+		Log.d("jabberClient", "Set roster ...");
 		
-		/*try {
-			Log.d("jabberClient", "Write message '" + msg + "' to " + to);
-			writeStream("<message to='" + to + "'><body>" + msg + "</body></message>");
-		} catch(Exception e) {
-			Log.e("jabberClient", "Error: IO", e);
-		}*/
 	}
 
 	/**
@@ -233,6 +296,14 @@ public class Network extends AsyncTask<String, Message, String> {
 	 */
 	public boolean isConnected() {
 		return connected;
+	}
+	
+	/**
+	 * @brief get connection status
+	 * return true or false
+	 */
+	public boolean isInitialized() {
+		return initialized;
 	}
 
 	/**
@@ -265,14 +336,10 @@ public class Network extends AsyncTask<String, Message, String> {
 			return null;
 		}
 
-		// Log.d("jabberClient", "\nRead: " + tmp + "\n");
-		Log.d("jabberClient", "Read success");
 		return tmp;
 	}
 
 	public int writeStream(String stream) {
-		// Log.d("jabberClient", "\nWrite:" + stream + "\n");
-
 		try {
 			output.write(stream);
 			output.flush();
@@ -281,7 +348,6 @@ public class Network extends AsyncTask<String, Message, String> {
 			return 0;
 		}
 
-		Log.d("jabberClient", "Write success");
 		return 1;
 	}
 

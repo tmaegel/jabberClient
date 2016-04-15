@@ -1,6 +1,10 @@
 package com.tmaegel.jabberClient;
 
+import com.tmaegel.jabberClient.Constants;
+
 import android.os.Bundle;
+
+import android.util.Log;
 
 import android.widget.TextView;
 
@@ -40,13 +44,17 @@ public class ConversationActivity extends Activity {
 		chatText = (EditText)findViewById(R.id.conv_input_message);
 		listView = (ListView)findViewById(R.id.conv_history);
 
-		convAdapter = new ConversationAdapter(this, R.layout.single_message);
+		Bundle b = getIntent().getExtras();
+		convAdapter = new ConversationAdapter(this, R.layout.single_message, b.getString("jid"));
 
 		listView.setAdapter(convAdapter);
 
 		buttonSend.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
-				convAdapter.addMessageToHistory(new Message(chatText.getText().toString(), false),  true);
+				Stream msg = new Stream(Constants.MESSAGE);
+				msg.setBody(chatText.getText().toString());
+				convAdapter.addMessageToHistory(msg,  true);
+				
 				chatText.setText("", TextView.BufferType.EDITABLE);
 			}
 		});

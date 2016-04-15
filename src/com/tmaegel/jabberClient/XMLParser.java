@@ -17,13 +17,6 @@ public class XMLParser {
 	private SAXParser saxParser;
 	private SAXAdapter saxAdapter;
 
-	/**
-	 * Evtl Object
-	 */
-	public String result;
-
-	public Message msg;
-
 	public XMLParser(Network net) {
 		this.net = net;
 
@@ -35,28 +28,41 @@ public class XMLParser {
 			Log.e("jabberClient", "Error: XMLParse", e);
 		}
 	}
-
-	public String parseStream(String stream) {
-		Log.d("jabberClient", "Start parsing");
-		Log.d("jabberClient", "" +   stream);
-		try {
-			saxParser.parse(new InputSource(new StringReader(stream)), saxAdapter);
-		} catch (Exception e) {
-			Log.e("jabberClient", "Error: XMLParse", e);
-		}
-
-		return result;
-	}
 	
-	public Message parseMessage(String stream) {
+	public Stream parseResponse(String stream) {
+		// Wegschneiden
+		// <?xml version='1.0'?><stream:stream xmlns:stream='http://etherx.jabber.org/streams' version='1.0' from='localhost' id='774b11bc-c31d-4714-880a-bf736bbe134f' xml:lang='en' xmlns='jabber:client'>
+		
+		if(stream.indexOf("<?xml") != -1) {
+			stream = stream.substring(stream.indexOf(">") + 1);
+		}
+		if(stream.indexOf("<stream:stream") != -1) {
+			stream = stream.substring(stream.indexOf(">") + 1);
+		}
+		int i;
+		if(stream.indexOf("<stream:features") != -1) {
+			stream = stream.substring(stream.indexOf(">") + 1);
+		}
+		if((i = stream.indexOf("</stream:features")) != -1) {
+			stream = stream.substring(0, i);
+		}
+		if(stream.indexOf("<ver") != -1) {
+			stream = stream.substring(stream.indexOf(">") + 1);
+		}
+		
+		/**< temp root element */
+		stream = "<root>" +  stream + "</root>";
+		
 		Log.d("jabberClient", "Start parsing");
-		Log.d("jabberClient", "" +   stream);
+		Log.d("jabberClient", "Stream: " + stream);
+		
+		
 		try {
 			saxParser.parse(new InputSource(new StringReader(stream)), saxAdapter);
 		} catch (Exception e) {
 			Log.e("jabberClient", "Error: XMLParse", e);
 		}
 
-		return msg;
+		return saxAdapter.getStream();
 	}
 }

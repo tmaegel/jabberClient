@@ -9,58 +9,100 @@ import org.xml.sax.helpers.DefaultHandler;
 public class SAXAdapter extends DefaultHandler {
 
 	private XMLParser parent;
-
-	boolean challenge = false;
-	boolean isMessage = false;
-
-	public String handshake;
+	
+	private Stream stream;
+	
+	private String streamTmp;
 
 	public SAXAdapter(XMLParser parent) {
 		this.parent = parent;
 	}
+	
+	public Stream getStream() {
+		return stream;
+	}
+
 
 	@Override
-	public void startElement(String uri, String localName, String tag, Attributes attributes)
-		throws SAXException {
-		if(tag.equalsIgnoreCase("stream:stream")) {
-			/*Log.d("jabberClient", "to (Stream): " + attributes.getValue("to"));
-			//Log.d("jabberClient", "from (Stream): " + attributes.getValue("from"));
-			Log.d("jabberClient", "version (Stream): " + attributes.getValue("version"));
-			Log.d("jabberClient", "xmlns (Stream): " + attributes.getValue("xmlns"));*/
-		} else if(tag.equalsIgnoreCase("challenge")) {
-			Log.d("jabberClient", "BEGIN " + tag);
-			Log.d("jabberClient", "xmlns=" + attributes.getValue("xmlns"));
-			challenge = true;
-		} else if(tag.equalsIgnoreCase("message")) {
-			// Log.d("jabberClient", "BEGIN " + tag);
-			parent.msg = new Message(attributes.getValue("to"), attributes.getValue("from"), true);
-			// Log.d("jabberClient", "id=" + attributes.getValue("id"));
-			// Log.d("jabberClient", "type=" + attributes.getValue("type"));
-			isMessage = true;
+	public void startElement(String uri, String localName, String tag, Attributes attributes) throws SAXException {
+		/**  reset */
+		streamTmp = "";
+	
+		switch(tag.toLowerCase()) {
+			case Constants.TAG_MESSAGE:
+				Log.d(Constants.LOG_TAG, "Detect " + Constants.TAG_MESSAGE + " tag");
+				stream = new Stream(Constants.MESSAGE);
+				stream.setTo(attributes.getValue("to"));
+				stream.setFrom(attributes.getValue("from"));
+				break;
+			case Constants.TAG_CHALLENGE:
+				Log.d(Constants.LOG_TAG, "Detect " + Constants.TAG_CHALLENGE + " tag");
+				stream = new Stream(Constants.CHALLENGE);
+				break;
+			case Constants.TAG_IQ:
+				Log.d(Constants.LOG_TAG, "Detect " + Constants.TAG_IQ + " tag");
+				stream = new Stream(Constants.IQ);
+				stream.setTo(attributes.getValue("to"));
+				break;
+			case Constants.TAG_SUCCESS:
+				Log.d(Constants.LOG_TAG, "Detect " + Constants.TAG_SUCCESS + " tag");
+				stream = new Stream(Constants.SUCCESS);
+				break;
+			case Constants.TAG_ITEM:
+				Log.d(Constants.LOG_TAG, "Detect " + Constants.TAG_ITEM + " tag");
+				stream = new Stream(Constants.ITEM);
+				break;
 		}
 	}
 
 	@Override
-	public void endElement(String uri, String localName, String tag)
-		throws SAXException {
-		if(tag.equalsIgnoreCase("challenge")) {
-			Log.d("jabberClient", "END " + tag);
-			parent.result = handshake;
-		} else if(tag.equalsIgnoreCase("message")) {
-			// Log.d("jabberClient", "END " + tag);
-		}
+	public void characters(char ch[], int start, int length) throws SAXException {	
+	
+		streamTmp = new String(ch, start, length);
+		Log.d(Constants.LOG_TAG, ">>> TMP:  " + streamTmp);
+		
+		/*switch(stream.getObjectType()) {
+			case Constants.MESSAGE:
+				stream.setBody(new String(ch, start, length));
+				break;
+			case Constants.CHALLENGE:
+				stream.setBody(new String(ch, start, length));
+				break;
+			case Constants.IQ:
+				String str = new String(ch, start, length);
+				Log.d(Constants.LOG_TAG, "Str. " + str);
+				stream.setBody(str);
+				
+				break;
+			case Constants.SUCCESS:
+				stream.setBody(new String(ch, start, length));
+				break;
+		}*/
 	}
 
 	@Override
-	public void characters(char ch[], int start, int length)
-		throws SAXException {
-		if(challenge) {
-			handshake = new String(ch, start, length);
-			Log.d("jabberClient", "Handshake=" + handshake);
-			challenge = false;
-		} else if(isMessage) {
-			parent.msg.setMessage(new String(ch, start, length));
-			isMessage = false;
+	public void endElement(String uri, String localName, String tag) throws SAXException {
+		switch(tag.toLowerCase()) {
+			case Constants.TAG_MESSAGE:
+				Log.d(Constants.LOG_TAG, "Detect " + Constants.TAG_MESSAGE + " end");
+				// Log.d(Constants.LOG_TAG, "Temp Stream:  " + streamTmp);
+				break;
+			case Constants.TAG_CHALLENGE:
+				Log.d(Constants.LOG_TAG, "Detect " + Constants.TAG_CHALLENGE + " end");
+				// Log.d(Constants.LOG_TAG, "Temp Stream:  " + streamTmp);
+				break;
+			case Constants.TAG_IQ:
+				Log.d(Constants.LOG_TAG, "Detect " + Constants.TAG_IQ + " end");
+				// Log.d(Constants.LOG_TAG, "Temp Stream:  " + streamTmp);
+				break;
+			case Constants.TAG_SUCCESS:
+				Log.d(Constants.LOG_TAG, "Detect " + Constants.TAG_SUCCESS + " end");
+				// Log.d(Constants.LOG_TAG, "Temp Stream:  " + streamTmp);
+				break;
+			case Constants.TAG_ITEM:
+				Log.d(Constants.LOG_TAG, "Detect " + Constants.TAG_ITEM + " end");
+				Log.d(Constants.LOG_TAG, "Temp Stream:  " + streamTmp);
+				break;
 		}
 	}
 }

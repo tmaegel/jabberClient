@@ -9,9 +9,9 @@
 		android:id="@+id/opt_add_contact" 
 		android:title="@string/opt_add_contact"/>
 
-	<item 
+	<!--<item 
 		android:id="@+id/opt_add_conference" 
-		android:title="@string/opt_add_conference"/>
+		android:title="@string/opt_add_conference"/>-->
 
 	<item 
 		android:id="@+id/opt_set_status" 

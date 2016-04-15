@@ -25,15 +25,15 @@
 
 		</activity>
 
-		<activity
+		<!--<activity
 			android:name="ListContactsActivity"
 			android:label="@string/act_list_contacts">
-		</activity>
+		</activity>-->
 
-		<activity
+		<!--<activity
 			android:name="ListConversationsActivity"
 			android:label="@string/act_list_conversations">
-		</activity>
+		</activity>-->
 
 		<activity
 			android:name="PreferencesActivity"
@@ -44,7 +44,16 @@
 			android:name="ConversationActivity"
 			android:label="@string/act_conversation">
 		</activity>
-
+		
+		<activity
+			android:name="AddContactActivity"
+			android:label="@string/act_add_contact">
+		</activity>
+		
+		<activity
+			android:name="SetStatusActivity"
+			android:label="@string/act_set_status">
+		</activity>
 
 	</application>
 

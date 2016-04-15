@@ -20,12 +20,15 @@ public class ConversationAdapter extends ArrayAdapter {
 
 	private TextView singleMessage;
 	private LinearLayout singleMessageContainer;
-	private List<Message> history = new ArrayList();
-
-	public ConversationAdapter(Context context, int resourceId) {
+	private List<Stream> history = new ArrayList();
+	
+	private String jid;
+	
+	public ConversationAdapter(Context context, int resourceId, String jid) {
 		super(context, resourceId);
 		this.context = context;
 		this.resourceId = resourceId;
+		this.jid = jid;
 	}
 
 	public View getView(int position, View convertView, ViewGroup parent) {
@@ -36,22 +39,23 @@ public class ConversationAdapter extends ArrayAdapter {
 		}
 
 		singleMessageContainer = (LinearLayout)row.findViewById(R.id.conv_single_message_container);
-		Message msg = getItem(position);
+		Stream msg = getItem(position);
 		singleMessage = (TextView)row.findViewById(R.id.conv_single_message);
-		singleMessage.setText(msg.getMessage());
+		singleMessage.setText(msg.getBody());
 		// chatText.setBackgroundResource(chatMessageObj.left ? R.drawable.bubble_a : R.drawable.bubble_b);
-		singleMessageContainer.setGravity(msg.left ? Gravity.LEFT : Gravity.RIGHT);
+		// singleMessageContainer.setGravity(msg.left ? Gravity.LEFT : Gravity.RIGHT);
 
 		return row;
 	}
 	
 	/** add message to container and to list */
-	public void addMessageToHistory(Message msg, boolean local) {
+	public void addMessageToHistory(Stream msg, boolean local) {
 		/** is local true, message is sending */
 		if(local == true) {
+			msg.setTo(jid);
 			history.add(msg);
 			super.add(msg);
-			MainActivity.net.sendMessage("user2@localhost", msg.getMessage());
+			MainActivity.net.sendRequest(msg);
 		} else {
 			history.add(msg);
 			super.add(msg);
@@ -59,7 +63,7 @@ public class ConversationAdapter extends ArrayAdapter {
 	}
 
 	/** return message object */
-	public Message getItem(int index) {
+	public Stream getItem(int index) {
 		return history.get(index);
 	}
 }

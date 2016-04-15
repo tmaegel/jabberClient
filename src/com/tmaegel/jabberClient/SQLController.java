@@ -21,7 +21,7 @@ public class SQLController extends SQLiteOpenHelper {
 	private static final String DB_NAME = "db_xmmp";
 	
 	// database version
-	private static final int DB_VERSION = 9;
+	private static final int DB_VERSION = 10;
 
 	// Table name
 	private static final String TABLE_NAME = "roster";
