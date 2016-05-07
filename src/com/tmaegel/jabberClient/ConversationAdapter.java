@@ -55,7 +55,7 @@ public class ConversationAdapter extends ArrayAdapter {
 			msg.setTo(jid);
 			history.add(msg);
 			super.add(msg);
-			MainActivity.net.sendRequest(msg);
+			// MainActivity.net.sendRequest(msg);
 		} else {
 			history.add(msg);
 			super.add(msg);

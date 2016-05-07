@@ -14,12 +14,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SQLController extends SQLiteOpenHelper {
-	
+
 	public SQLiteDatabase db;
 
 	// Database name
 	private static final String DB_NAME = "db_xmmp";
-	
+
 	// database version
 	private static final int DB_VERSION = 10;
 
@@ -33,9 +33,9 @@ public class SQLController extends SQLiteOpenHelper {
 	public static final String NAME = "name";
 	public static final String GROUP = "circle";
 
-	public SQLController(Context context) {	
+	public SQLController(Context context) {
 		super(context, DB_NAME, null, DB_VERSION);
-		
+
 		/*try {
 			database = getWritableDatabase();
 		} catch(SQLException e) {
@@ -43,7 +43,7 @@ public class SQLController extends SQLiteOpenHelper {
 		}*/
 		//  open();
 	}
-		
+
 	/**
 	 * @brief will be called on first time use of the application
 	 */
@@ -51,7 +51,7 @@ public class SQLController extends SQLiteOpenHelper {
 	public void onCreate(SQLiteDatabase db) {
 		try {
 			db.execSQL("CREATE TABLE " + TABLE_NAME + "(" + ID + " INTEGER PRIMARY KEY, " + JID + " TEXT, " + NAME + " TEXT, " + GROUP + " TEXT);");
-			Log.d("jabberClient", "create " + TABLE_NAME); 
+			Log.d("jabberClient", "create " + TABLE_NAME);
 		} catch(SQLException e) {
 			Log.e("jabberClient", "create table: " + e);
 			System.exit(1);
@@ -75,14 +75,14 @@ public class SQLController extends SQLiteOpenHelper {
 		Log.d("jabberClient", "inserting ...");
 		try {
 			db = this.getWritableDatabase();
-		
+
 			ContentValues values = new ContentValues();
 			/** @todo id != jid */
 			values.put(JID, jid);
 			values.put(NAME, name);
 			values.put(GROUP, group);
 			db.insert(TABLE_NAME, null, values);
-		
+
 			db.close();
 		} catch (Exception e) {
 			Log.e("jabberClient", "" + e);
@@ -104,13 +104,16 @@ public class SQLController extends SQLiteOpenHelper {
 			if(cursor.moveToFirst()) {
 				do {
 					Contact contact = new Contact();
-					contact.setJID(cursor.getString(0));
-					contact.setName(cursor.getString(1));
-					contact.setGroup(cursor.getString(2));
+					contact.jid = cursor.getString(0);
+					contact.name = cursor.getString(1);
+					contact.group = cursor.getString(2);
+					// contact.setJID(cursor.getString(0));
+					// contact.setName(cursor.getString(1));
+					// contact.setGroup(cursor.getString(2));
 					// Adding contact to list
 					contactList.add(contact);
-					
-					Log.d("jabberClient", "JID: " + contact.getJID() + " NAME: " + contact.getName() + " GROUP: " + contact.getGroup());
+
+					// Log.d("jabberClient", "JID: " + contact.getJID() + " NAME: " + contact.getName() + " GROUP: " + contact.getGroup());
 				} while (cursor.moveToNext());
 			}
 
@@ -130,17 +133,17 @@ public class SQLController extends SQLiteOpenHelper {
 	public int updateById(long id, String jid, String name, String group) {
 		Log.d("jabberClient", "modifying by id ...");
 		db = this.getWritableDatabase();
-		
+
 		ContentValues values = new ContentValues();
 		values.put(JID, jid);
 		values.put(NAME, name);
 		values.put(GROUP, group);
 		int i = db.update(TABLE_NAME, values, ID + " = " + id, null);
 		db.close();
-		
+
 		return i;
 	}
-	
+
 	/**
 	 * @brief modify record by object
 	 */
@@ -166,7 +169,7 @@ public class SQLController extends SQLiteOpenHelper {
 		db.delete(TABLE_NAME, ID + "=" + id, null);
 		db.close();
 	}
-	
+
 	/**
 	 * @brief delete all records
 	 */

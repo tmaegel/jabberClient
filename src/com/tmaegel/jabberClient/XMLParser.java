@@ -22,6 +22,9 @@ public class XMLParser {
 
 		try {
 			factory = SAXParserFactory.newInstance();
+			factory.setFeature("http://xml.org/sax/features/namespaces", false);
+			factory.setFeature("http://xml.org/sax/features/namespace-prefixes", true);
+			
 			saxParser = factory.newSAXParser();
 			saxAdapter = new SAXAdapter(this);
 		} catch (Exception e) {
@@ -29,9 +32,11 @@ public class XMLParser {
 		}
 	}
 	
-	public Stream parseResponse(String stream) {
+	public Stanza parseResponse(String stream) {
 		// Wegschneiden
 		// <?xml version='1.0'?><stream:stream xmlns:stream='http://etherx.jabber.org/streams' version='1.0' from='localhost' id='774b11bc-c31d-4714-880a-bf736bbe134f' xml:lang='en' xmlns='jabber:client'>
+		
+		Log.d("jabberClient", "Stream: " + stream);
 		
 		if(stream.indexOf("<?xml") != -1) {
 			stream = stream.substring(stream.indexOf(">") + 1);
@@ -53,7 +58,7 @@ public class XMLParser {
 		/**< temp root element */
 		stream = "<root>" +  stream + "</root>";
 		
-		Log.d("jabberClient", "Start parsing");
+		Log.d("jabberClient", "Start parsing...");
 		Log.d("jabberClient", "Stream: " + stream);
 		
 		
@@ -63,6 +68,6 @@ public class XMLParser {
 			Log.e("jabberClient", "Error: XMLParse", e);
 		}
 
-		return saxAdapter.getStream();
+		return saxAdapter.getStanza();
 	}
 }

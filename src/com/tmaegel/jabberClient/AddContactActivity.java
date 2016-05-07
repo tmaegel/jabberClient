@@ -24,7 +24,7 @@ public class AddContactActivity extends Activity {
 		
 		net = MainActivity.net;
 		
-		// net.sendRequest(new Stream(Constants.ROSTER));
+		net.sendRequest(Constants.C_ROSTER_SET);
 	}
 	
 	/** Called when create menu  */

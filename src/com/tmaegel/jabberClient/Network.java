@@ -8,6 +8,8 @@ import android.os.AsyncTask;
 import android.util.Log;
 import android.util.Base64;
 
+import java.util.Vector;
+import java.util.HashMap;
 import java.util.UUID;
 
 import java.math.BigInteger;
@@ -22,48 +24,48 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.InetAddress;
 
-public class Network extends AsyncTask<String, Stream, String> {
+public class Network extends AsyncTask<String, Integer, String> {
 
 	// private references
 	private Socket socket;
 	private XMLParser xmlParser;
+	private Parser parser;
 	private InputStream input;
 	private BufferedWriter output;
 
 	private Thread sendThread;
 	private Thread recvThread;
 
+	public Stanza stanza;
+
 	// private String serverIpAddr = "www.maegel-online.de";
 	// private String serverIpAddr = "37.187.216.212";
-	private String serverIpAddr = "192.168.178.148";
+	private String serverIpAddr = "192.168.178.103";
 	private int serverPort = 5222; // only for client to server communication
 	// private int serverPort = 5269; // only for server to server communication
 
 	static private String uft8null = "\\x00"; // Use for PLAIN authentifaction
 
 	// Account information
+	private String jid = "user1@localhost";
 	private String fullJid;
 
 	// Authentifaction (TEST)
 	private String senderUser = "user1";
-	private String receiverUser = "user2";
 	private String password = "123456";
 	private String resource = "ressource";
 	private String host = "localhost";
-	private String lang = "de";
-	private String xmlns = "jabber:client";
-	private String xmlns_stream = "http://etherx.jabber.org/streams";
 
 	private boolean connected = false;
 	private boolean initialized = false;
-	
+
 	@Override
 	protected String doInBackground(String... params) {
-		Log.e("jabberClient", "exec doInBackground()");
-		Log.d("jabberClient", "Network is starting");
-		
-		xmlParser = new XMLParser(this);
-		
+		// Log.d(Constants.LOG_TAG, "exec doInBackground()");
+		Log.d(Constants.LOG_TAG, "> Network is starting");
+
+		parser = new Parser();
+
 		/**
 		 * Sender loop
 		 */
@@ -72,25 +74,25 @@ public class Network extends AsyncTask<String, Stream, String> {
 		    	try {
 		    		int waitingPeriod = 100;
 				    while(connected) {
-				    
+
 				    	// Get roster
 				    	// @todo bad  solution
 				    	while(waitingPeriod >= 100 && isInitialized() == true) {
-							Stream obj = new Stream(Constants.ROSTER_REQUEST);
-							sendRequest(obj);
-							
+							// Stream obj = new Stream(Constants.C_ROSTER_REQUEST);
+							sendRequest(Constants.C_ROSTER_REQUEST);
+
 							waitingPeriod = 0;
 						}
 						waitingPeriod++;
-				    	
+
 				    	Thread.sleep(3000);
 				    }
 				} catch(Exception e) {
-				    Log.e("jabberClient", "Error: Sender loop", e);
+				    Log.e(Constants.LOG_TAG, "Error: Sender loop", e);
 				}
 		    }
     	});
-    	
+
     	/**
     	 * Receiver loop
     	 */
@@ -98,34 +100,34 @@ public class Network extends AsyncTask<String, Stream, String> {
 		    public void run() {
 		    	try {
 				    while(connected) {
-				    
+
 				        // Receive response in the loop
 						recvResponse();
 
 				        Thread.sleep(3000);
 				    }
 				} catch(Exception e) {
-				    Log.e("jabberClient", "Error: Receiver loop", e);
+				    Log.e(Constants.LOG_TAG, "Error: Receiver loop", e);
 				}
 		    }
     	});
-		
+
 		/**
 		 * Initialization
 		 */
     	try {
 			// InetAddress serverAddr = InetAddress.getByName(serverIpAddr);
-			Log.d("jabberClient", "Open socket to " + serverIpAddr + ":" + serverPort);
+			Log.d(Constants.LOG_TAG, "> Open socket to " + serverIpAddr + ":" + serverPort);
 			socket = new Socket(serverIpAddr, serverPort);
 
-			Log.d("jabberClient", "Connected");
+			Log.d(Constants.LOG_TAG, "> Connected");
 			connected = true;
 
 			input = socket.getInputStream();
 			output = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
-			
+
 			sendThread.start();
-			
+
 			try {
 				// first authenticate
 				if(initStream() == true) {
@@ -135,20 +137,20 @@ public class Network extends AsyncTask<String, Stream, String> {
 					connected = false;
 				}
 			} catch(Exception e) {
-				Log.e("jabberClient", "Error: IO", e);
+				Log.e(Constants.LOG_TAG, "Error: IO", e);
 				socket.close();
-				Log.d("jabberClient", "Socket closed");
+				Log.d(Constants.LOG_TAG, "Socket closed");
 			}
-			
+
 		} catch(Exception e) {
-			Log.e("jabberClient", "Error: Socket", e);
+			Log.e(Constants.LOG_TAG, "Error: Socket", e);
 			connected = false;
 		}
-    	
+
     	// Starting threads
 		// sendThread.start();
 		// recvThread.start();
-		
+
 		return null; // returns what you want to pass to the onPostExecute()
 	}
 
@@ -157,7 +159,7 @@ public class Network extends AsyncTask<String, Stream, String> {
 	 */
 	@Override
 	protected void onPostExecute(String result) {
-		Log.e("jabberClient", "exec onPostExecute()");
+		// Log.d(Constants.LOG_TAG, "exec onPostExecute()");
 	}
 
 	/**
@@ -165,91 +167,134 @@ public class Network extends AsyncTask<String, Stream, String> {
 	 */
 	@Override
 	protected void onPreExecute() {
-		Log.e("jabberClient", "exe onPreExecute()");
-	}
-	
-	protected void onProgressUpdate(Stream... obj) {
-		Log.e("jabberClient", "exe onProgressUpdate() ");
-		MainActivity.convAct.convAdapter.addMessageToHistory(obj[0], false);
+		// Log.d(Constants.LOG_TAG, "exe onPreExecute()");
 	}
 
-	
+	protected void onProgressUpdate(Integer... type) {
+		// MainActivity.convAct.convAdapter.addMessageToHistory(obj[0], false);
+
+		switch(type[0]) {
+			/**
+			 * Roster
+			 */
+			case Constants.S_ROSTER_RESPONSE:
+				MainActivity.updateContactList();
+				break;
+			case Constants.S_ROSTER_PUSH:
+
+				break;
+			case Constants.S_ROSTER_ERROR:
+
+				break;
+		}
+	}
+
+
 	/**
 	 * @brief init stream, first authenticate
 	 * @param succes authentication true or false
 	 */
 	public boolean initStream() {
 		try {
-			Log.d("jabberClient", "Initialization ...");
+			boolean plainAuth = false;
+
+			Log.d(Constants.LOG_TAG, "> Initialization ...");
 			// For Authentifaction
-			writeStream("<stream:stream from='" + senderUser + "@" + host + "' to='" + host + "' version='1.0' xml:lang='" + lang + "' xmlns='" + xmlns + "' xmlns:stream='" + xmlns_stream + "'>");
+			writeStream("<stream:stream from='" + senderUser + "@" + host + "' to='" + host + "' version='1.0' xml:lang='de' xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams'>");
 			// For Anonymous Authentifaction
 			// writeStream("<?xml version='1.0'?><stream:stream to='localhost' version='1.0' xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams'>");
-			recvResponse();
-			
-			// Log.d("jabberClient", "" + readStream()); /** todo parsing STREAM:STREAM tag failed */
+			int res = recvResponse();
+			switch(res) {
+				/**< tls auth */
+				case Constants.NS_TLS_AUTH:
+					break;
+				/**< sasl auth */
+				case Constants.NS_SASL_AUTH:
+					if(stanza.mechanisms.size() > 0) {
+						Log.d(Constants.LOG_TAG, "> Receive SASL mechanisms:");
+						for(int i = 0; i < stanza.mechanisms.size(); i++) {
+							Log.d(Constants.LOG_TAG, "   " + stanza.mechanisms.get(i));
+							if(stanza.mechanisms.get(i).equals("PLAIN")) {
+								plainAuth = true;
+							}
+						}
+					}
+					break;
+			}
 
-			 // SASL Authentifaction: PLAIN
-			 String authStream = "\0" + senderUser + "\0" + password;
-			 Log.d("jabberClient", "authStream >> " + authStream);
-			 writeStream("<auth xmlns='urn:ietf:params:xml:ns:xmpp-sasl' mechanism='PLAIN'>" + Base64.encodeToString(authStream.getBytes("UTF-8"), 0) + "</auth>");
-			 //String encodeHandshake = xmlParser.parseStream(readStream());
-			 // readStream();
-			recvResponse();
+			if(plainAuth) {
+				Log.d(Constants.LOG_TAG, "> Initiate PLAIN authentication...");
+				// SASL Authentifaction: PLAIN
+				String authStream = "\0" + senderUser + "\0" + password;
+				writeStream("<auth xmlns='urn:ietf:params:xml:ns:xmpp-sasl' mechanism='PLAIN'>" + Base64.encodeToString(authStream.getBytes("UTF-8"), 0) + "</auth>");
+				res = recvResponse();
+				if(stanza.success) {
+					Log.d(Constants.LOG_TAG, "> Authentifaction sucess");
+				} else {
+					Log.d(Constants.LOG_TAG, "> Authentifaction error");
+				}
+			} else {
+				Log.d(Constants.LOG_TAG, "> No PLAIN authentication available. Exit!");
+			}
 
-
-			writeStream("<stream:stream from='" + senderUser + "@" + host + "' to='" + host + "' version='1.0' xml:lang='" + lang + "' xmlns='" + xmlns + "' xmlns:stream='" + xmlns_stream + "'>");
-			// Log.d("jabberClient", "" + readStream()); /** todo parsing STREAM:STREAM tag failed */
+			writeStream("<stream:stream from='" + senderUser + "@" + host + "' to='" + host + "' version='1.0' xml:lang='de' xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams'>");
+			// Log.d(Constants.LOG_TAG, "" + readStream()); /** todo parsing STREAM:STREAM tag failed */
 			recvResponse();
 
 			// Resource binding, Server generate resource
 			writeStream("<iq id='yhc13a95' type='set'><bind xmlns='urn:ietf:params:xml:ns:xmpp-bind'/></iq>");
 			recvResponse();
-			
-			Log.d("jabberClient", "Initialization success");
+
+			// writeStream("<iq from='" + fullJid + "' type='get' id='roster_1'><query xmlns='jabber:iq:roster'/></iq>");
+			// recvResponse();
+
+			Log.d(Constants.LOG_TAG, "Initialization success");
 			initialized = true;
 		} catch(Exception e) {
-			Log.e("jabberClient", "Error: Init stream", e);
+			Log.e(Constants.LOG_TAG, "Error: Init stream", e);
 		}
 
 		return true;
 	}
-	
+
 	/**
 	 * @brief receive response
 	 * @todo: problems with to many messages
 	 * @todo: In welchen Schritt befinden wir uns? Übergabe eines TAGS um zu detektieren. Weil es mehrere IQ tags gibt, die unterschiedliches bewirken
 	 */
-	public void recvResponse() {
-		String stream = readStream();
-		// Log.d("jabberClient", "" + stream);
-		Stream obj = xmlParser.parseResponse(stream);
-		
-		if(obj != null) {
-			switch(obj.getObjectType()) {
-				case Constants.MESSAGE:
-					Log.d(Constants.LOG_TAG, "FROM: " + obj.getFrom() + ", TO: " + obj.getTo() + ", BODY: " + obj.getBody());
-					publishProgress(obj);
-					break;
-				case Constants.CHALLENGE:
-					Log.d(Constants.LOG_TAG, "CHALLENGE: " + obj.getBody());
-					break;
-				case Constants.IQ:
-					Log.d(Constants.LOG_TAG, "JID: " + obj.getBody());
-					fullJid = obj.getBody();
-					break;
-			}
-		} else {
-			Log.d(Constants.LOG_TAG, "Null object");
+	public int recvResponse() {
+		stanza = parser.parseXML(readStream());
+
+		switch(stanza.namespace) {
+			/**
+			 * Resource binding
+			 */
+			case Constants.NS_RESOURCE_BIND:
+				Log.d(Constants.LOG_TAG, "Full JID = " + stanza.jid);
+				break;
+
+			/**
+			 * Roster
+			 */
+			case Constants.NS_ROSTER:
+				if(stanza.subtype == Constants.S_ROSTER_RESPONSE) {
+					publishProgress(Constants.S_ROSTER_RESPONSE);
+				} else if(stanza.subtype == Constants.S_ROSTER_PUSH) {
+
+				} else if(stanza.subtype == Constants.S_ROSTER_ERROR) {
+
+				}
+				break;
 		}
-		
+
+		return stanza.namespace;
 	}
-	
+
 	/**
 	 * @brief send request
 	 * @todo: problems with to many messages
 	 */
-	public void sendRequest(Stream obj) {
+	public void sendRequest(int type) {
 		/**< initial roster request **/
 		// <iq from='juliet@example.com/balcony' type='get' id='roster_1'><query xmlns='jabber:iq:roster'/></iq>
 		/**< add a roster item **/
@@ -258,36 +303,33 @@ public class Network extends AsyncTask<String, Stream, String> {
 		// <iq from='juliet@example.com/chamber' type='set' id='roster_3'><query xmlns='jabber:iq:roster'><item jid='romeo@example.net' name='Romeo' subscription='both'><group>Friends</group><group>Lovers</group></item></query></iq>
 		/**< delete a roster item */
 		// <iq from='juliet@example.com/balcony' type='set' id='roster_4'><query xmlns='jabber:iq:roster'><item jid='nurse@example.com' subscription='remove'/></query></iq>
-	
-		switch(obj.getObjectType()) {
+
+		switch(type) {
 			/**
 			 * ROSTER
+			 * @todo generate random id
 			 */
-			case Constants.ROSTER_REQUEST:
-				/**
-				 * @todo generate rendom id
-				 */
+			/** Get roster  */
+			case Constants.C_ROSTER_REQUEST:
 				Log.d(Constants.LOG_TAG, "Roster request");
 				writeStream("<iq from='" + fullJid + "' type='get' id='roster_1'><query xmlns='jabber:iq:roster'/></iq>");
 				break;
-			
+			/** Add roster item */
+			case Constants.C_ROSTER_SET:
+				Log.d(Constants.LOG_TAG, "Add roster item");
+				Log.d(Constants.LOG_TAG, "<iq from='" + jid + "' type='set' id='roster_2'><query xmlns='jabber:iq:roster'/><item jid='test@localhost'/></query></iq>");
+				writeStream("<iq from='" + jid + "' type='set' id='roster_2'><query xmlns='jabber:iq:roster'/><item jid='test@localhost'/></query></iq>");
+				break;
+
 			/**
 			 * MESSAGE
 			 */
-			case Constants.MESSAGE:
+			/* case Constants.MESSAGE:
 				Log.d(Constants.LOG_TAG, "Send message");
 				Log.d(Constants.LOG_TAG, "TO: " + obj.getTo() + ", BODY: " + obj.getBody());
 				writeStream("<message to='" + obj.getTo() + "'><body>" + obj.getBody() + "</body></message>");
-				break;
+				break; */
 		}
-	}
-	
-	/**
-	 * @brief a client's request for the server to modify (i.e., create, update, or delete) a roster item
-	 */
-	public void setRoster(/*String from, String jid*/) {
-		Log.d("jabberClient", "Set roster ...");
-		
 	}
 
 	/**
@@ -297,7 +339,7 @@ public class Network extends AsyncTask<String, Stream, String> {
 	public boolean isConnected() {
 		return connected;
 	}
-	
+
 	/**
 	 * @brief get connection status
 	 * return true or false
@@ -332,7 +374,7 @@ public class Network extends AsyncTask<String, Stream, String> {
 				}
 			}
 		} catch(Exception e) {
-			Log.e("jabberClient", "Read failed: ", e);
+			Log.e(Constants.LOG_TAG, "Read failed: ", e);
 			return null;
 		}
 
@@ -344,7 +386,7 @@ public class Network extends AsyncTask<String, Stream, String> {
 			output.write(stream);
 			output.flush();
 		} catch(IOException e) {
-			Log.e("jabberClient", "Write failed: ", e);
+			Log.e(Constants.LOG_TAG, "Write failed: ", e);
 			return 0;
 		}
 
@@ -354,10 +396,10 @@ public class Network extends AsyncTask<String, Stream, String> {
 	/*public void run() {
 		try {
 			InetAddress serverAddr = InetAddress.getByName(serverIpAddr);
-			Log.d("jabberClient", "Open socket");
+			Log.d(Constants.LOG_TAG, "Open socket");
 			socket = new Socket(serverAddr, serverPort);
 
-	/*		Log.d("jabberClient", "Connected");
+	/*		Log.d(Constants.LOG_TAG, "Connected");
 			connected = true;
 
 	/*		input = socket.getInputStream();

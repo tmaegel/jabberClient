@@ -49,8 +49,9 @@ public class MainActivity /*extends TabActivity*/ extends ListActivity {
 	public static Intent addContInt;
 	public static Intent setStatInt;
 	public static Intent prefInt;
-	
-	public static List<Contact> contactList = new ArrayList();
+
+	public static ArrayAdapter<String> listAdapter;
+	public static List<String> contactList = new ArrayList<String>();
 
 	/** Called when the activity is first created. */
 	@Override
@@ -61,21 +62,19 @@ public class MainActivity /*extends TabActivity*/ extends ListActivity {
 		main = this;
 
 		// database
-		dbCon = new SQLController(main);
+		// dbCon = new SQLController(main);
 		// dbCon.insert("user1@localhost", "TEST1", "GROUP A");
 		// dbCon.insert("user2@localhost", "TEST2", "GROUP B")
-		contactList = dbCon.fetch();
+		// contacts = dbCon.fetch();
 
 		content = (TextView)findViewById(R.id.contact);
 
-		String[] elements = new String[MainActivity.contactList.size()];
-		for(int i = 0; i < MainActivity.contactList.size(); i++) {
-			elements[i] = MainActivity.contactList.get(i).getName();
-		}
-		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, elements);
-		// Assign adapter to list
-		setListAdapter(adapter);
-		
+		/**
+		 * Contact list
+		 */
+		listAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, contactList);
+		setListAdapter(listAdapter);
+
 		convInt = new Intent(this, ConversationActivity.class);
 		addContInt = new Intent(this, AddContactActivity.class);
 		setStatInt = new Intent(this, SetStatusActivity.class);
@@ -95,11 +94,11 @@ public class MainActivity /*extends TabActivity*/ extends ListActivity {
 		ConnectivityManager connMgr = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 		if(networkInfo != null && networkInfo.isConnected()) {
-			Log.i(Constants.LOG_TAG, "Network is ready");
+			Log.i(Constants.LOG_TAG, "> Network is ready");
 			net = new Network();
-    		net.execute(/*sleepTime*/);		
+    		net.execute(/*sleepTime*/);
 		} else {
-			Log.i(Constants.LOG_TAG, "No network available");
+			Log.i(Constants.LOG_TAG, "> No network available");
 		}
 	}
 
@@ -152,4 +151,15 @@ public class MainActivity /*extends TabActivity*/ extends ListActivity {
 	/*public static getInstance() {
 		return instance;
 	}*/
+
+	public static void updateContactList() {
+		Log.d(Constants.LOG_TAG, "Update " + net.stanza.contacts.size() + " contacts");
+
+		contactList.clear();
+		for (int i = 0; i < net.stanza.contacts.size(); ++i) {
+			contactList.add(net.stanza.contacts.get(i).jid);
+
+		}
+		listAdapter.notifyDataSetChanged();
+	}
 }
