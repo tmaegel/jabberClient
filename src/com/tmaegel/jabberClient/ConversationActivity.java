@@ -51,9 +51,9 @@ public class ConversationActivity extends Activity {
 
 		buttonSend.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
-				Stream msg = new Stream(Constants.MESSAGE);
-				msg.setBody(chatText.getText().toString());
-				convAdapter.addMessageToHistory(msg,  true);
+				// Stream msg = new Stream(Constants.MESSAGE);
+				// msg.setBody(chatText.getText().toString());
+				// convAdapter.addMessageToHistory(msg,  true);
 				
 				chatText.setText("", TextView.BufferType.EDITABLE);
 			}

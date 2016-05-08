@@ -153,11 +153,11 @@ public class MainActivity /*extends TabActivity*/ extends ListActivity {
 	}*/
 
 	public static void updateContactList() {
-		Log.d(Constants.LOG_TAG, "Update " + net.stanza.contacts.size() + " contacts");
+		Log.d(Constants.LOG_TAG, "Update " + net.stanza.items.size() + " contacts");
 
 		contactList.clear();
-		for (int i = 0; i < net.stanza.contacts.size(); ++i) {
-			contactList.add(net.stanza.contacts.get(i).jid);
+		for (int i = 0; i < net.stanza.items.size(); ++i) {
+			contactList.add(net.stanza.items.get(i).name + "," + net.stanza.items.get(i).jid + ","+net.stanza.items.get(i).group + ","+net.stanza.items.get(i).subscription);
 
 		}
 		listAdapter.notifyDataSetChanged();

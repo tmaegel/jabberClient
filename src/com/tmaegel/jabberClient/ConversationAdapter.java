@@ -39,9 +39,9 @@ public class ConversationAdapter extends ArrayAdapter {
 		}
 
 		singleMessageContainer = (LinearLayout)row.findViewById(R.id.conv_single_message_container);
-		Stream msg = getItem(position);
+		// Stream msg = getItem(position);
 		singleMessage = (TextView)row.findViewById(R.id.conv_single_message);
-		singleMessage.setText(msg.getBody());
+		// singleMessage.setText(msg.getBody());
 		// chatText.setBackgroundResource(chatMessageObj.left ? R.drawable.bubble_a : R.drawable.bubble_b);
 		// singleMessageContainer.setGravity(msg.left ? Gravity.LEFT : Gravity.RIGHT);
 
@@ -52,13 +52,13 @@ public class ConversationAdapter extends ArrayAdapter {
 	public void addMessageToHistory(Stream msg, boolean local) {
 		/** is local true, message is sending */
 		if(local == true) {
-			msg.setTo(jid);
-			history.add(msg);
+			// msg.setTo(jid);
+			// history.add(msg);
 			super.add(msg);
 			// MainActivity.net.sendRequest(msg);
 		} else {
-			history.add(msg);
-			super.add(msg);
+			// history.add(msg);
+			// super.add(msg);
 		}
 	}
 

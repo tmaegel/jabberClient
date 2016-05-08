@@ -36,6 +36,7 @@ public class Network extends AsyncTask<String, Integer, String> {
 	private Thread sendThread;
 	private Thread recvThread;
 
+	public Stream stream;
 	public Stanza stanza;
 
 	// private String serverIpAddr = "www.maegel-online.de";
@@ -72,19 +73,7 @@ public class Network extends AsyncTask<String, Integer, String> {
 		sendThread = new Thread(new Runnable() {
 		    public void run() {
 		    	try {
-		    		int waitingPeriod = 100;
 				    while(connected) {
-
-				    	// Get roster
-				    	// @todo bad  solution
-				    	while(waitingPeriod >= 100 && isInitialized() == true) {
-							// Stream obj = new Stream(Constants.C_ROSTER_REQUEST);
-							sendRequest(Constants.C_ROSTER_REQUEST);
-
-							waitingPeriod = 0;
-						}
-						waitingPeriod++;
-
 				    	Thread.sleep(3000);
 				    }
 				} catch(Exception e) {
@@ -100,7 +89,6 @@ public class Network extends AsyncTask<String, Integer, String> {
 		    public void run() {
 		    	try {
 				    while(connected) {
-
 				        // Receive response in the loop
 						recvResponse();
 
@@ -203,13 +191,13 @@ public class Network extends AsyncTask<String, Integer, String> {
 			writeStream("<stream:stream from='" + senderUser + "@" + host + "' to='" + host + "' version='1.0' xml:lang='de' xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams'>");
 			// For Anonymous Authentifaction
 			// writeStream("<?xml version='1.0'?><stream:stream to='localhost' version='1.0' xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams'>");
-			int res = recvResponse();
-			switch(res) {
+			recvResponse();
+			/*switch(res) {
 				/**< tls auth */
-				case Constants.NS_TLS_AUTH:
+			/*	case Constants.NS_TLS_AUTH:
 					break;
 				/**< sasl auth */
-				case Constants.NS_SASL_AUTH:
+			/*	case Constants.NS_SASL_AUTH:
 					if(stanza.mechanisms.size() > 0) {
 						Log.d(Constants.LOG_TAG, "> Receive SASL mechanisms:");
 						for(int i = 0; i < stanza.mechanisms.size(); i++) {
@@ -220,22 +208,22 @@ public class Network extends AsyncTask<String, Integer, String> {
 						}
 					}
 					break;
-			}
+			}*/
 
-			if(plainAuth) {
-				Log.d(Constants.LOG_TAG, "> Initiate PLAIN authentication...");
+			// if(plainAuth) {
+			// 	Log.d(Constants.LOG_TAG, "> Initiate PLAIN authentication...");
 				// SASL Authentifaction: PLAIN
 				String authStream = "\0" + senderUser + "\0" + password;
 				writeStream("<auth xmlns='urn:ietf:params:xml:ns:xmpp-sasl' mechanism='PLAIN'>" + Base64.encodeToString(authStream.getBytes("UTF-8"), 0) + "</auth>");
-				res = recvResponse();
-				if(stanza.success) {
+				recvResponse();
+				/*if(stanza.success) {
 					Log.d(Constants.LOG_TAG, "> Authentifaction sucess");
 				} else {
 					Log.d(Constants.LOG_TAG, "> Authentifaction error");
-				}
-			} else {
-				Log.d(Constants.LOG_TAG, "> No PLAIN authentication available. Exit!");
-			}
+				}*/
+			// } else {
+			// 	Log.d(Constants.LOG_TAG, "> No PLAIN authentication available. Exit!");
+			// }
 
 			writeStream("<stream:stream from='" + senderUser + "@" + host + "' to='" + host + "' version='1.0' xml:lang='de' xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams'>");
 			// Log.d(Constants.LOG_TAG, "" + readStream()); /** todo parsing STREAM:STREAM tag failed */
@@ -250,6 +238,10 @@ public class Network extends AsyncTask<String, Integer, String> {
 
 			Log.d(Constants.LOG_TAG, "Initialization success");
 			initialized = true;
+			
+			// Initial roster request
+			sendRequest(Constants.C_ROSTER_REQUEST);
+			
 		} catch(Exception e) {
 			Log.e(Constants.LOG_TAG, "Error: Init stream", e);
 		}
@@ -262,32 +254,33 @@ public class Network extends AsyncTask<String, Integer, String> {
 	 * @todo: problems with to many messages
 	 * @todo: In welchen Schritt befinden wir uns? Übergabe eines TAGS um zu detektieren. Weil es mehrere IQ tags gibt, die unterschiedliches bewirken
 	 */
-	public int recvResponse() {
+	public void recvResponse() {
 		stanza = parser.parseXML(readStream());
 
-		switch(stanza.namespace) {
-			/**
-			 * Resource binding
-			 */
-			case Constants.NS_RESOURCE_BIND:
-				Log.d(Constants.LOG_TAG, "Full JID = " + stanza.jid);
-				break;
-
-			/**
-			 * Roster
-			 */
-			case Constants.NS_ROSTER:
-				if(stanza.subtype == Constants.S_ROSTER_RESPONSE) {
-					publishProgress(Constants.S_ROSTER_RESPONSE);
-				} else if(stanza.subtype == Constants.S_ROSTER_PUSH) {
-
-				} else if(stanza.subtype == Constants.S_ROSTER_ERROR) {
-
-				}
-				break;
+		if(stanza != null) {
+			switch(stanza.stanzaType) {
+				case Constants.IQ:
+					if(stanza.type.equals("result")) {
+						Log.d(Constants.LOG_TAG, "Received roster result");
+						publishProgress(Constants.S_ROSTER_RESPONSE);
+					} else if(stanza.type.equals("set")) {
+						Log.d(Constants.LOG_TAG, "Received roster push");
+						publishProgress(Constants.S_ROSTER_PUSH);
+					} else if(stanza.type.equals("error")) {
+						Log.d(Constants.LOG_TAG, "Received roster error");
+						publishProgress(Constants.S_ROSTER_ERROR);
+					}
+					break;
+				case Constants.PRESENCE:
+				
+					break;
+				case Constants.MESSAGE:
+				
+					break;
+			}
+		} else {
+			Log.d(Constants.LOG_TAG, "No stanza object received");
 		}
-
-		return stanza.namespace;
 	}
 
 	/**
@@ -317,6 +310,8 @@ public class Network extends AsyncTask<String, Integer, String> {
 			/** Add roster item */
 			case Constants.C_ROSTER_SET:
 				Log.d(Constants.LOG_TAG, "Add roster item");
+				
+				//"<iq from='juliet@example.com/balcony' id='rs1' type='set'><query xmlns='jabber:iq:roster'><item jid='nurse@example.com'/></query></iq>"
 				Log.d(Constants.LOG_TAG, "<iq from='" + jid + "' type='set' id='roster_2'><query xmlns='jabber:iq:roster'/><item jid='test@localhost'/></query></iq>");
 				writeStream("<iq from='" + jid + "' type='set' id='roster_2'><query xmlns='jabber:iq:roster'/><item jid='test@localhost'/></query></iq>");
 				break;

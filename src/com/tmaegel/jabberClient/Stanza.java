@@ -8,44 +8,37 @@ import java.util.Vector;
 
 public class Stanza {
 
-	// public int tag = -1;
-	public int namespace = -1;
-	public int subtype = -1;
+	/** general stanza type (iq, presence, message) */
+	public int stanzaType = -1;
 
-	/**< common */
-	public String xmlns = "";
+	/**< common attribute for iq, presence, message */
+	public String to = "";
+	public String from = "";
 	public String id = "";
 	public String type = "";
-	/* public String to = "";
-	public String from = "";
+	public String lang = "";
+	
+	// public String xmlns = "";
+	
+	/** inital stream negotiation */
+	public Vector<String> mechanism;
+	
+	/**< roster specific attributes */
 	public String ver = "";
+	public Vector<Contact> items;
+	
+	/**< message specific attributes */
+	// ...
+	
+	/**< presence specific attributes */
+	// ...
+	
+	/*
 	public String ask = ""; */
 
-	/**< sasl auth */
-	public Vector<String> mechanisms;
-	public boolean success = false;
-
-	/**< resource binding */
-	public String jid = "";
-
-	/**< roster */
-	public Vector<Contact> contacts;
-	/**< message */
-	// public Vector<Message> messages;
-
-	public Stanza() {
-		this.mechanisms = new Vector<String>();
-
-		this.contacts = new Vector<Contact>();
-	}
-
-	public String getCommonAttribute(String attribute) {
-		/*for(int i = 0; i < meta.size(); i++) {
-			if(meta.get(i).getAttribute().equals(attribute)) {
-				return meta.get(i).getValue();
-			}
-		}*/
-
-		return null;
+	public Stanza(int stanzaType) {
+		this.stanzaType = stanzaType;
+		this.mechanism = new Vector<String>();
+		this.items = new Vector<Contact>();
 	}
 }

@@ -2,12 +2,20 @@ package com.tmaegel.jabberClient;
 
 public class Contact {
 
-	public String jid;
-	public String name;
-	public String group;
-	public String subscription;
-	// public String ver;
-	// public String ask;
+	public String jid 			= "undefined";
+	public String name 			= "undefined";
+	public String group 		= "undefined";
+	public String subscription 	= "undefined"; /**< int of subscriptionValues */
+	public String ask 			= "";
+	public String approved 		= ""; /**< boolean */
+	
+	public String[] subscriptionValues = new String[]
+	{
+		"none",
+		"to",
+		"from",
+		"both"
+	};
 
 	public Contact() {
 
