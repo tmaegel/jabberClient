@@ -5,8 +5,8 @@ import com.tmaegel.jabberClient.Constants;
 import android.os.Bundle;
 
 import android.util.Log;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
 
 import android.view.View;
 import android.view.Menu;
@@ -34,24 +34,28 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.net.NetworkInfo;
 import android.net.ConnectivityManager;
 
-public class MainActivity /*extends TabActivity*/ extends ListActivity {
+public class MainActivity /*extends TabActivity*/ extends Activity {
 
 	// public references
-	public static MainActivity main;
-	public static ConversationActivity convAct;
-	public static Network net;
+	public MainActivity main;
+	public ConversationActivity convAct;
+	public Network net;
 	// public SQLController dbCon;
 
-	private TextView content;
-
 	// intents
-	public static Intent convInt;
-	public static Intent addContInt;
-	public static Intent setStatInt;
-	public static Intent prefInt;
+	public Intent convInt;
+	public Intent setStatInt;
+	public Intent prefInt;
 
-	public static ArrayAdapter<String> listAdapter;
-	public static List<String> contactList = new ArrayList<String>();
+	public ListAdapter listAdapter;
+	public ArrayList<Contact> contacts;
+
+	/**
+	 * REQUEST CODE OF CHILD ACTIVITIES
+	 */
+	static final int ADD_ROSTER_ITEM = 1;	/**< Add roster item */
+	static final int DEL_ROSTER_ITEM = 2;	/**< Delete roster item */
+	static final int UPD_ROSTER_ITEM = 3;	/**< Update roster item */
 
 	/** Called when the activity is first created. */
 	@Override
@@ -59,28 +63,32 @@ public class MainActivity /*extends TabActivity*/ extends ListActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 
-		main = this;
-
 		// database
 		// dbCon = new SQLController(main);
 		// dbCon.insert("user1@localhost", "TEST1", "GROUP A");
 		// dbCon.insert("user2@localhost", "TEST2", "GROUP B")
 		// contacts = dbCon.fetch();
 
-		content = (TextView)findViewById(R.id.contact);
+		// content = (TextView)findViewById(R.id.contact);
 
 		/**
 		 * Contact list
 		 */
-		listAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, contactList);
-		setListAdapter(listAdapter);
+		// listAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, contactList);
+		// setListAdapter(listAdapter);
+		// Get ListView from main.xml
 
 		convInt = new Intent(this, ConversationActivity.class);
-		addContInt = new Intent(this, AddContactActivity.class);
 		setStatInt = new Intent(this, SetStatusActivity.class);
 		prefInt = new Intent(this, PreferencesActivity.class);
 
-		getListView().setOnItemClickListener(new OnItemClickListener() {
+		// Contact list
+		contacts = new ArrayList<Contact>();
+        ListView list = (ListView)findViewById(R.id.list);
+		listAdapter = new ListAdapter(this, contacts);
+        list.setAdapter(listAdapter);
+
+		/*getListView().setOnItemClickListener(new OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				//Intent convActivity = new Intent(this, convActivity.class);
@@ -88,14 +96,14 @@ public class MainActivity /*extends TabActivity*/ extends ListActivity {
 				convInt.putExtra("jid", jid);
 				startActivity(convInt);
 			}
-		});
+		});*/
 
-		// Check network status
+		// Network
 		ConnectivityManager connMgr = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 		if(networkInfo != null && networkInfo.isConnected()) {
 			Log.i(Constants.LOG_TAG, "> Network is ready");
-			net = new Network();
+			net = new Network(this);
     		net.execute(/*sleepTime*/);
 		} else {
 			Log.i(Constants.LOG_TAG, "> No network available");
@@ -122,7 +130,8 @@ public class MainActivity /*extends TabActivity*/ extends ListActivity {
 				return true;
 			/** Add contact */
 			case R.id.opt_add_contact:
-				startActivity(addContInt);
+				Intent addContInt = new Intent(this, AddContactActivity.class);
+				startActivityForResult(addContInt, ADD_ROSTER_ITEM);
 				return true;
 			/** Add conversation */
 			/*case R.id.opt_add_conference:
@@ -148,18 +157,26 @@ public class MainActivity /*extends TabActivity*/ extends ListActivity {
 
 	}
 
-	/*public static getInstance() {
-		return instance;
-	}*/
-
-	public static void updateContactList() {
-		Log.d(Constants.LOG_TAG, "Update " + net.contacts.size() + " contacts");
-
-		contactList.clear();
-		for (int i = 0; i < net.contacts.size(); ++i) {
-			contactList.add(net.contacts.get(i).name + "," + net.contacts.get(i).jid + "," + net.contacts.get(i).group);
-
-		}
+	/**
+	 * Refresh contact list
+	 */
+	public void listUpdate(ArrayList<Contact> items) {
+		contacts.clear();
+		contacts.addAll(items);
 		listAdapter.notifyDataSetChanged();
+	}
+
+	/**
+	 * Get results of child activities
+	 */
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		switch(requestCode) {
+			case ADD_ROSTER_ITEM:
+				if (resultCode == RESULT_OK) {
+					net.contact = new Contact(data.getStringExtra("jid"), data.getStringExtra("name"), data.getStringExtra("group"));
+					net.sendRequest(Constants.C_ROSTER_SET);
+				}
+				break;
+		}
 	}
 }

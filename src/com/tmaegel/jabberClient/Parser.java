@@ -130,7 +130,7 @@ public class Parser {
 		if(parseText) {
 			if(tag.equals("group")) {
 				Log.d(Constants.LOG_TAG, "GROUP " + parser.getText());
-				stanza.items.lastElement().group = parser.getText();
+				stanza.items.get(stanza.items.size()-1).group = parser.getText();
 			}
 		} else {
 			if(tag.equals("item")) {

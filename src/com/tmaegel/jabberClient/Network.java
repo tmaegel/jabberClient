@@ -9,8 +9,11 @@ import android.util.Log;
 import android.util.Base64;
 
 import java.util.Vector;
-import java.util.HashMap;
-import java.util.UUID;
+import java.util.List;
+import java.util.ArrayList;
+
+// import java.util.HashMap;
+// import java.util.UUID;
 
 import java.math.BigInteger;
 
@@ -26,6 +29,9 @@ import java.net.InetAddress;
 
 public class Network extends AsyncTask<String, Integer, String> {
 
+	// context
+	private MainActivity main;
+
 	// private network references
 	private Socket socket;
 	private InputStream input;
@@ -39,12 +45,11 @@ public class Network extends AsyncTask<String, Integer, String> {
 	// objects
 	public Stanza stanza;
 	public Contact contact;
-	public Vector<Contact> contacts = new Vector<Contact>();
 
 	private String serverIpAddr = "192.168.178.103";	// alternativ "www.maegel-online.de" or "37.187.216.212"
 	private int serverPort = 5222; 						// only for client to server communication, 5269 for server to server communication
 
-	static private String uft8null = "\\x00"; 			// use for PLAIN authentifaction
+	private String uft8null = "\\x00"; 			// use for PLAIN authentifaction
 
 	// Account information
 	private String jid = "user1@localhost";
@@ -58,6 +63,10 @@ public class Network extends AsyncTask<String, Integer, String> {
 
 	private boolean connected = false;
 	private boolean initialized = false;
+
+	public Network(MainActivity main) {
+		this.main = main;
+	}
 
 	@Override
 	protected String doInBackground(String... params) {
@@ -165,12 +174,11 @@ public class Network extends AsyncTask<String, Integer, String> {
 			 * Roster
 			 */
 			case Constants.S_ROSTER_RESPONSE:
-				contacts = stanza.items;
-				MainActivity.updateContactList();
+				main.listUpdate(stanza.items);
 				break;
 			case Constants.S_ROSTER_PUSH:
-				stanza.items.addAll(contacts);
-				MainActivity.updateContactList();
+				/*stanza.items.addAll(main.contacts);
+				main.listAdapter.notifyDataSetChanged();*/
 				break;
 			case Constants.S_ROSTER_ERROR:
 

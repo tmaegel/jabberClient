@@ -37,8 +37,8 @@ public class ConversationActivity extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.conversation);
-		
-		MainActivity.convAct = this;
+
+		// MainActivity.convAct = this;
 
 		buttonSend = (ImageButton)findViewById(R.id.conv_send);
 		chatText = (EditText)findViewById(R.id.conv_input_message);
@@ -54,7 +54,7 @@ public class ConversationActivity extends Activity {
 				// Stream msg = new Stream(Constants.MESSAGE);
 				// msg.setBody(chatText.getText().toString());
 				// convAdapter.addMessageToHistory(msg,  true);
-				
+
 				chatText.setText("", TextView.BufferType.EDITABLE);
 			}
 		});

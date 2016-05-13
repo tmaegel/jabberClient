@@ -5,6 +5,8 @@ import com.tmaegel.jabberClient.Constants;
 import android.util.Log;
 
 import java.util.Vector;
+import java.util.List;
+import java.util.ArrayList;
 
 public class Stanza {
 
@@ -21,11 +23,11 @@ public class Stanza {
 	// public String xmlns = "";
 
 	/** inital stream negotiation */
-	public Vector<String> mechanism;
+	public ArrayList<String> mechanism;
 
 	/**< roster specific attributes */
 	public String ver = "";
-	public Vector<Contact> items;
+	public ArrayList<Contact> items;
 
 	/**< message specific attributes */
 	// ...
@@ -38,7 +40,7 @@ public class Stanza {
 
 	public Stanza() {
 		this.stanzaType = stanzaType;
-		this.mechanism = new Vector<String>();
-		this.items = new Vector<Contact>();
+		this.mechanism = new ArrayList<String>();
+		this.items = new ArrayList<Contact>();
 	}
 }

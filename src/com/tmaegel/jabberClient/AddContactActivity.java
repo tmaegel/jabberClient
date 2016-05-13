@@ -8,6 +8,8 @@ import android.util.Log;
 
 import android.app.Activity;
 
+import android.content.Intent;
+
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -44,10 +46,12 @@ public class AddContactActivity extends Activity {
 		switch (item.getItemId()) {
 			/** Start conversation */
 			case R.id.opt_success:
-				Log.d("jabberClient", "Add contact ...");
-				MainActivity.net.contact = new Contact(jidText.getText().toString(), nameText.getText().toString(), groupText.getText().toString());
+				Intent localIntent = new Intent();
+	 			localIntent.putExtra("jid", jidText.getText().toString());
+				localIntent.putExtra("name", nameText.getText().toString());
+				localIntent.putExtra("group", groupText.getText().toString());
 				clearText();
-				MainActivity.net.sendRequest(Constants.C_ROSTER_SET);
+	 			setResult(RESULT_OK, localIntent);
 				finish();
 				return true;
 			/** Default */
