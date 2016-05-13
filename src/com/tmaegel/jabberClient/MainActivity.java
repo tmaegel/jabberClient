@@ -40,7 +40,7 @@ public class MainActivity /*extends TabActivity*/ extends ListActivity {
 	public static MainActivity main;
 	public static ConversationActivity convAct;
 	public static Network net;
-	public SQLController dbCon;
+	// public SQLController dbCon;
 
 	private TextView content;
 
@@ -153,11 +153,11 @@ public class MainActivity /*extends TabActivity*/ extends ListActivity {
 	}*/
 
 	public static void updateContactList() {
-		Log.d(Constants.LOG_TAG, "Update " + net.stanza.items.size() + " contacts");
+		Log.d(Constants.LOG_TAG, "Update " + net.contacts.size() + " contacts");
 
 		contactList.clear();
-		for (int i = 0; i < net.stanza.items.size(); ++i) {
-			contactList.add(net.stanza.items.get(i).name + "," + net.stanza.items.get(i).jid + ","+net.stanza.items.get(i).group + ","+net.stanza.items.get(i).subscription);
+		for (int i = 0; i < net.contacts.size(); ++i) {
+			contactList.add(net.contacts.get(i).name + "," + net.contacts.get(i).jid + "," + net.contacts.get(i).group);
 
 		}
 		listAdapter.notifyDataSetChanged();

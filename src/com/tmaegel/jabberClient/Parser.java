@@ -32,7 +32,7 @@ public class Parser {
 	}
 
 	public Stanza parseXML(String stream) {
-		Log.d("jabberClient", "" + stream);
+		Log.d("jabberClient", "PARSE " + stream);
 
 		try {
 			parser.setInput(new StringReader(stream));
@@ -42,6 +42,7 @@ public class Parser {
 				switch(eventType) {
 					case XmlPullParser.START_DOCUMENT:
 						Log.d("jabberClient", ">>> New stream");
+						stanza = new Stanza();
 						rootTag = 0;
 						break;
 					case XmlPullParser.START_TAG:
@@ -67,16 +68,16 @@ public class Parser {
 
 		return stanza;
 	}
-	
+
 	/**
 	 * @brief Parsing commonn attributes of iq, presence or message tag
 	 */
 	public void parseCommon() {
-		stanza = new Stanza(rootTag);
-		
+		stanza.stanzaType = rootTag;
+
 		Log.d(Constants.LOG_TAG, "Parsing common attributes of "  + tag + " tag");
 		for(int i = 0; i < parser.getAttributeCount(); i++) {
-			switch(parser.getAttributeName(i)) {		
+			switch(parser.getAttributeName(i)) {
 				case "to":
 					stanza.to = parser.getAttributeValue(i);
 					Log.d(Constants.LOG_TAG, "TO = " + stanza.to);
@@ -104,7 +105,7 @@ public class Parser {
 			}
 		}
 	}
-	
+
 	/**
 	 * @brief Parse initial stream e.g. stream:stream, stream:features
 	 */
@@ -118,14 +119,14 @@ public class Parser {
 			// do nothing
 		}
 	}
-	
+
 	/**
 	 * @brief Parse iq attributes and tags
 	 * @param parseText - true parse body, false parse attributes
 	 */
 	public void parseIq(boolean parseText) {
 		boolean toContinue = false;
-		
+
 		if(parseText) {
 			if(tag.equals("group")) {
 				Log.d(Constants.LOG_TAG, "GROUP " + parser.getText());
@@ -135,12 +136,12 @@ public class Parser {
 			if(tag.equals("item")) {
 				toContinue = true;
 			}
-		
+
 			if(toContinue) {
 				Contact contact = new Contact();
 				Log.d(Constants.LOG_TAG, "New roster item");
 				for(int i = 0; i < parser.getAttributeCount(); i++) {
-					switch(parser.getAttributeName(i)) {		
+					switch(parser.getAttributeName(i)) {
 						case "jid":
 							contact.jid = parser.getAttributeValue(i);
 							Log.d(Constants.LOG_TAG, "JID = " + contact.jid);
@@ -160,7 +161,7 @@ public class Parser {
 		}
 	}
 
-	public void parse(boolean parseText) {	
+	public void parse(boolean parseText) {
 		if(stanza != null) {
 			switch(rootTag) {
 				/**< STREAM:STREAM */
@@ -181,12 +182,12 @@ public class Parser {
 					break;
 			}
 		}
-		
+
 		switch(tag) {
 			/**
 			 * STREAM
 			 */
-			 
+
 			/**< STREAM:STREAM */
 			case Constants.TAG_STREAM_INIT:
 				Log.d(Constants.LOG_TAG, "TAG <STREAM:STREAM>");
@@ -198,11 +199,11 @@ public class Parser {
 				Log.d(Constants.LOG_TAG, "TAG <STREAM:FEATURES>");
 				rootTag = Constants.STREAM_FEATURES;
 				break;*/
-				
+
 			/**
 			 * STANZA
 			 */
-				
+
 			/**< IQ */
 			case Constants.TAG_IQ:
 				Log.d(Constants.LOG_TAG, "TAG <IQ>");
@@ -221,24 +222,24 @@ public class Parser {
 				rootTag = Constants.MESSAGE;
 				parseCommon();
 				break;
-			
+
 			/**
 			 * ERROR OR SUCCESS
 		 	*/
-		 	
+
 		 	/**< SUCCESS */
 			case Constants.TAG_STREAM_SUCCESS:
 				Log.d(Constants.LOG_TAG, "TAG <SUCESS>");
 				rootTag = Constants.STREAM_SUCCESS;
-				stanza = new Stanza(Constants.STREAM_SUCCESS);
+				stanza.stanzaType = Constants.STREAM_SUCCESS;
 				break;
 			/**< FAILURE */
 			case Constants.TAG_STREAM_FAILURE:
 				Log.d(Constants.LOG_TAG, "TAG <FAILURE>");
 				rootTag = Constants.STREAM_FAILURE;
-				stanza = new Stanza(Constants.STREAM_FAILURE);
+				stanza.stanzaType = Constants.STREAM_FAILURE;
 				break;
-				
+
 		}
 	}
 }

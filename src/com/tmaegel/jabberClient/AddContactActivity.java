@@ -12,21 +12,23 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
+import android.widget.EditText;
+import android.widget.TextView;
+
 public class AddContactActivity extends Activity {
-	
-	// private references
-	public static Network net;
-	
+
+	private EditText jidText, nameText, groupText;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.add_contact);
-		
-		net = MainActivity.net;
-		
-		net.sendRequest(Constants.C_ROSTER_SET);
+
+		jidText = (EditText)findViewById(R.id.acont_jid_edit);
+		nameText = (EditText)findViewById(R.id.acont_name_edit);
+		groupText = (EditText)findViewById(R.id.acont_group_edit);
 	}
-	
+
 	/** Called when create menu  */
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -35,7 +37,7 @@ public class AddContactActivity extends Activity {
 
 		return true;
 	}
-	
+
 	/** Listening to click on menu items */
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
@@ -43,10 +45,20 @@ public class AddContactActivity extends Activity {
 			/** Start conversation */
 			case R.id.opt_success:
 				Log.d("jabberClient", "Add contact ...");
+				MainActivity.net.contact = new Contact(jidText.getText().toString(), nameText.getText().toString(), groupText.getText().toString());
+				clearText();
+				MainActivity.net.sendRequest(Constants.C_ROSTER_SET);
+				finish();
 				return true;
 			/** Default */
 			default:
 				return super.onOptionsItemSelected(item);
 		}
+	}
+
+	public void clearText() {
+		jidText.setText("", TextView.BufferType.EDITABLE);
+		nameText.setText("", TextView.BufferType.EDITABLE);
+		groupText.setText("", TextView.BufferType.EDITABLE);
 	}
 }

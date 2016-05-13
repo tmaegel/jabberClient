@@ -26,26 +26,25 @@ import java.net.InetAddress;
 
 public class Network extends AsyncTask<String, Integer, String> {
 
-	// private references
+	// private network references
 	private Socket socket;
-	private XMLParser xmlParser;
-	private Parser parser;
 	private InputStream input;
 	private BufferedWriter output;
+	private Parser parser;
 
+	// thread
 	private Thread sendThread;
 	private Thread recvThread;
 
-	public Stream stream;
+	// objects
 	public Stanza stanza;
+	public Contact contact;
+	public Vector<Contact> contacts = new Vector<Contact>();
 
-	// private String serverIpAddr = "www.maegel-online.de";
-	// private String serverIpAddr = "37.187.216.212";
-	private String serverIpAddr = "192.168.178.103";
-	private int serverPort = 5222; // only for client to server communication
-	// private int serverPort = 5269; // only for server to server communication
+	private String serverIpAddr = "192.168.178.103";	// alternativ "www.maegel-online.de" or "37.187.216.212"
+	private int serverPort = 5222; 						// only for client to server communication, 5269 for server to server communication
 
-	static private String uft8null = "\\x00"; // Use for PLAIN authentifaction
+	static private String uft8null = "\\x00"; 			// use for PLAIN authentifaction
 
 	// Account information
 	private String jid = "user1@localhost";
@@ -166,10 +165,12 @@ public class Network extends AsyncTask<String, Integer, String> {
 			 * Roster
 			 */
 			case Constants.S_ROSTER_RESPONSE:
+				contacts = stanza.items;
 				MainActivity.updateContactList();
 				break;
 			case Constants.S_ROSTER_PUSH:
-
+				stanza.items.addAll(contacts);
+				MainActivity.updateContactList();
 				break;
 			case Constants.S_ROSTER_ERROR:
 
@@ -238,10 +239,10 @@ public class Network extends AsyncTask<String, Integer, String> {
 
 			Log.d(Constants.LOG_TAG, "Initialization success");
 			initialized = true;
-			
+
 			// Initial roster request
 			sendRequest(Constants.C_ROSTER_REQUEST);
-			
+
 		} catch(Exception e) {
 			Log.e(Constants.LOG_TAG, "Error: Init stream", e);
 		}
@@ -255,31 +256,35 @@ public class Network extends AsyncTask<String, Integer, String> {
 	 * @todo: In welchen Schritt befinden wir uns? Übergabe eines TAGS um zu detektieren. Weil es mehrere IQ tags gibt, die unterschiedliches bewirken
 	 */
 	public void recvResponse() {
-		stanza = parser.parseXML(readStream());
+		String stream = readStream();
 
-		if(stanza != null) {
-			switch(stanza.stanzaType) {
-				case Constants.IQ:
-					if(stanza.type.equals("result")) {
-						Log.d(Constants.LOG_TAG, "Received roster result");
-						publishProgress(Constants.S_ROSTER_RESPONSE);
-					} else if(stanza.type.equals("set")) {
-						Log.d(Constants.LOG_TAG, "Received roster push");
-						publishProgress(Constants.S_ROSTER_PUSH);
-					} else if(stanza.type.equals("error")) {
-						Log.d(Constants.LOG_TAG, "Received roster error");
-						publishProgress(Constants.S_ROSTER_ERROR);
-					}
-					break;
-				case Constants.PRESENCE:
-				
-					break;
-				case Constants.MESSAGE:
-				
-					break;
+		if(stream != null && !stream.isEmpty()) {
+			stanza = parser.parseXML(stream);
+
+			if(stanza != null && stanza.stanzaType > 0) {
+				switch(stanza.stanzaType) {
+					case Constants.IQ:
+						if(stanza.type.equals("result")) {
+							Log.d(Constants.LOG_TAG, "Received roster result");
+							publishProgress(Constants.S_ROSTER_RESPONSE);
+						} else if(stanza.type.equals("set")) {
+							Log.d(Constants.LOG_TAG, "Received roster push");
+							publishProgress(Constants.S_ROSTER_PUSH);
+						} else if(stanza.type.equals("error")) {
+							Log.d(Constants.LOG_TAG, "Received roster error");
+							publishProgress(Constants.S_ROSTER_ERROR);
+						}
+						break;
+					case Constants.PRESENCE:
+
+						break;
+					case Constants.MESSAGE:
+
+						break;
+				}
+			} else {
+				Log.d(Constants.LOG_TAG, "No stanza object received");
 			}
-		} else {
-			Log.d(Constants.LOG_TAG, "No stanza object received");
 		}
 	}
 
@@ -309,11 +314,28 @@ public class Network extends AsyncTask<String, Integer, String> {
 				break;
 			/** Add roster item */
 			case Constants.C_ROSTER_SET:
-				Log.d(Constants.LOG_TAG, "Add roster item");
-				
-				//"<iq from='juliet@example.com/balcony' id='rs1' type='set'><query xmlns='jabber:iq:roster'><item jid='nurse@example.com'/></query></iq>"
-				Log.d(Constants.LOG_TAG, "<iq from='" + jid + "' type='set' id='roster_2'><query xmlns='jabber:iq:roster'/><item jid='test@localhost'/></query></iq>");
-				writeStream("<iq from='" + jid + "' type='set' id='roster_2'><query xmlns='jabber:iq:roster'/><item jid='test@localhost'/></query></iq>");
+				if(contact != null) {
+					if(contact.jid != null) {
+						String rosterStream = "<iq from='" + jid + "' type='set' id='roster_2'><query xmlns='jabber:iq:roster'><item jid='" + contact.jid + "'";
+						if(contact.name != null) {
+							rosterStream = rosterStream + " name='" + contact.name + "'";
+						}
+						if(contact.group == null) {
+							rosterStream = rosterStream + "/>";
+						} else {
+							rosterStream = rosterStream + "><group>" + contact.group + "</group></item>";
+						}
+						rosterStream = rosterStream + "</query></iq>";
+
+						Log.d(Constants.LOG_TAG, "Add roster item");
+						writeStream(rosterStream);
+					} else {
+						Log.d(Constants.LOG_TAG, "Jid is empty. No Roster set.");
+					}
+				} else {
+					Log.d(Constants.LOG_TAG, "No roster item found");
+				}
+				contact = null;
 				break;
 
 			/**
@@ -387,6 +409,9 @@ public class Network extends AsyncTask<String, Integer, String> {
 
 		return 1;
 	}
+}
+
+
 
 	/*public void run() {
 		try {
@@ -650,4 +675,3 @@ public class Network extends AsyncTask<String, Integer, String> {
 			connected = false;
 		}*/
 	/*}*/
-}

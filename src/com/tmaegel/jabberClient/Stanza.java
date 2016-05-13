@@ -17,26 +17,26 @@ public class Stanza {
 	public String id = "";
 	public String type = "";
 	public String lang = "";
-	
+
 	// public String xmlns = "";
-	
+
 	/** inital stream negotiation */
 	public Vector<String> mechanism;
-	
+
 	/**< roster specific attributes */
 	public String ver = "";
 	public Vector<Contact> items;
-	
+
 	/**< message specific attributes */
 	// ...
-	
+
 	/**< presence specific attributes */
 	// ...
-	
+
 	/*
 	public String ask = ""; */
 
-	public Stanza(int stanzaType) {
+	public Stanza() {
 		this.stanzaType = stanzaType;
 		this.mechanism = new Vector<String>();
 		this.items = new Vector<Contact>();
