@@ -17,12 +17,11 @@
 	<string name="tab_conversations">Conversations</string>-->
 
 	<!-- Option menu -->
-	<string name="opt_start_conversation">Start conversation</string>
 	<string name="opt_add_contact">Add contact</string>
 	<string name="opt_add_conference">Add conference</string>
 	<string name="opt_set_status">Set status</string>
 	<string name="opt_settings">Settings</string>
-	
+
 	<!-- Option menu -->
 	<string name="opt_success">Success</string>
 
@@ -50,12 +49,12 @@
 	<string name="pref_version_summary">Version description</string>
 	<string name="pref_author">Author</string>
 	<string name="pref_author_summary">Author description</string>
-	
+
 	<!-- Add contact activity -->
 	<string name="acont_name">Name</string>
 	<string name="acont_jid">JID</string>
 	<string name="acont_group">Gruppe</string>
-	
+
 	<!-- Set status activity -->
 	<string name="sstat_status">Status</string>
 

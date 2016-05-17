@@ -23,7 +23,7 @@ final public class Constants {
  	public static final int NS_ROSTER				= 94;*/
 
 	public static final int NONE 					= 0;
-	
+
 	/**
 	 * INITAL STREAM
 	 */
@@ -55,5 +55,7 @@ final public class Constants {
 	public static final int S_ROSTER_RESPONSE		= 25;			/**< type=result */
 	public static final int S_ROSTER_PUSH			= 26;			/**< type=set */
 	public static final int S_ROSTER_ERROR			= 28;			/**< type=error */
-	
+
+	public static final int C_SEND_MESSAGE			= 30;
+
 }

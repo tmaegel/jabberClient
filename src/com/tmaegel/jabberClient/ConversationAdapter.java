@@ -1,17 +1,23 @@
 package com.tmaegel.jabberClient;
 
+import com.tmaegel.jabberClient.Constants;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import android.util.Log;
+
 import android.content.Context;
-import android.widget.ArrayAdapter;
+import android.content.Intent;
 
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class ConversationAdapter extends ArrayAdapter {
 
@@ -20,10 +26,11 @@ public class ConversationAdapter extends ArrayAdapter {
 
 	private TextView singleMessage;
 	private LinearLayout singleMessageContainer;
-	private List<Stream> history = new ArrayList();
-	
+
+	private List<Message> history = new ArrayList<Message>();
+
 	private String jid;
-	
+
 	public ConversationAdapter(Context context, int resourceId, String jid) {
 		super(context, resourceId);
 		this.context = context;
@@ -40,22 +47,25 @@ public class ConversationAdapter extends ArrayAdapter {
 
 		singleMessageContainer = (LinearLayout)row.findViewById(R.id.conv_single_message_container);
 		// Stream msg = getItem(position);
+		Message msg = getMessage(position);
 		singleMessage = (TextView)row.findViewById(R.id.conv_single_message);
-		// singleMessage.setText(msg.getBody());
+		singleMessage.setText(msg.getBody());
 		// chatText.setBackgroundResource(chatMessageObj.left ? R.drawable.bubble_a : R.drawable.bubble_b);
-		// singleMessageContainer.setGravity(msg.left ? Gravity.LEFT : Gravity.RIGHT);
+		singleMessageContainer.setGravity(msg.isLocal() ? Gravity.RIGHT : Gravity.LEFT);
 
 		return row;
 	}
-	
+
 	/** add message to container and to list */
-	public void addMessageToHistory(Stream msg, boolean local) {
+	public void addMessage(Message msg) {
 		/** is local true, message is sending */
-		if(local == true) {
-			// msg.setTo(jid);
-			// history.add(msg);
+		if(msg.isLocal()) {
+			msg.setTo(jid);
+			history.add(msg);
 			super.add(msg);
-			// MainActivity.net.sendRequest(msg);
+			if (MainActivity.instance != null) {
+				MainActivity.instance.net.sendRequest(Constants.C_SEND_MESSAGE);
+			}
 		} else {
 			// history.add(msg);
 			// super.add(msg);
@@ -63,7 +73,7 @@ public class ConversationAdapter extends ArrayAdapter {
 	}
 
 	/** return message object */
-	public Stream getItem(int index) {
+	public Message getMessage(int index) {
 		return history.get(index);
 	}
 }

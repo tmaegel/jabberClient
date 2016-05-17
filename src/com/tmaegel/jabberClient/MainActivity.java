@@ -15,15 +15,10 @@ import android.view.MenuItem;
 
 import android.app.ActionBar.Tab;
 import android.app.Activity;
-// import android.app.TabActivity;
-import android.app.ListActivity;
 
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
-
-// import android.widget.TabHost;
-// import android.widget.TabHost.TabSpec;
 
 import android.widget.TextView;
 import android.widget.ListView;
@@ -34,16 +29,16 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.net.NetworkInfo;
 import android.net.ConnectivityManager;
 
-public class MainActivity /*extends TabActivity*/ extends Activity {
+public class MainActivity extends Activity {
+
+	public static MainActivity instance = null;
 
 	// public references
-	public MainActivity main;
 	public ConversationActivity convAct;
 	public Network net;
 	// public SQLController dbCon;
 
 	// intents
-	public Intent convInt;
 	public Intent setStatInt;
 	public Intent prefInt;
 
@@ -53,9 +48,10 @@ public class MainActivity /*extends TabActivity*/ extends Activity {
 	/**
 	 * REQUEST CODE OF CHILD ACTIVITIES
 	 */
-	static final int ADD_ROSTER_ITEM = 1;	/**< Add roster item */
-	static final int DEL_ROSTER_ITEM = 2;	/**< Delete roster item */
-	static final int UPD_ROSTER_ITEM = 3;	/**< Update roster item */
+	static final int ADD_ROSTER_ITEM 		= 1;	/**< Add roster item */
+	static final int DEL_ROSTER_ITEM 		= 2;	/**< Delete roster item */
+	static final int UPD_ROSTER_ITEM 		= 3;	/**< Update roster item */
+	static final int START_CONVERSATION 	= 4;	/**< Update roster item */
 
 	/** Called when the activity is first created. */
 	@Override
@@ -63,22 +59,14 @@ public class MainActivity /*extends TabActivity*/ extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 
+		instance = this;
+
 		// database
 		// dbCon = new SQLController(main);
 		// dbCon.insert("user1@localhost", "TEST1", "GROUP A");
 		// dbCon.insert("user2@localhost", "TEST2", "GROUP B")
 		// contacts = dbCon.fetch();
 
-		// content = (TextView)findViewById(R.id.contact);
-
-		/**
-		 * Contact list
-		 */
-		// listAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, contactList);
-		// setListAdapter(listAdapter);
-		// Get ListView from main.xml
-
-		convInt = new Intent(this, ConversationActivity.class);
 		setStatInt = new Intent(this, SetStatusActivity.class);
 		prefInt = new Intent(this, PreferencesActivity.class);
 
@@ -87,16 +75,15 @@ public class MainActivity /*extends TabActivity*/ extends Activity {
         ListView list = (ListView)findViewById(R.id.list);
 		listAdapter = new ListAdapter(this, contacts);
         list.setAdapter(listAdapter);
-
-		/*getListView().setOnItemClickListener(new OnItemClickListener() {
+		list.setOnItemClickListener(new OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				//Intent convActivity = new Intent(this, convActivity.class);
-				String jid = ((TextView)view).getText().toString();
+				String jid = contacts.get(position).getJid();
+				Intent convInt = new Intent(view.getContext(), ConversationActivity.class);
 				convInt.putExtra("jid", jid);
-				startActivity(convInt);
+				startActivityForResult(convInt, START_CONVERSATION);
 			}
-		});*/
+		});
 
 		// Network
 		ConnectivityManager connMgr = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -123,17 +110,12 @@ public class MainActivity /*extends TabActivity*/ extends Activity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-			/** Start conversation */
-			case R.id.opt_start_conversation:
-				convInt.putExtra("jid", "0");
-				startActivity(convInt);
-				return true;
 			/** Add contact */
 			case R.id.opt_add_contact:
 				Intent addContInt = new Intent(this, AddContactActivity.class);
 				startActivityForResult(addContInt, ADD_ROSTER_ITEM);
 				return true;
-			/** Add conversation */
+			/** Add conference */
 			/*case R.id.opt_add_conference:
 
 				return true;*/
@@ -178,5 +160,17 @@ public class MainActivity /*extends TabActivity*/ extends Activity {
 				}
 				break;
 		}
+	}
+
+	@Override
+	public void onResume() {
+		super.onResume();
+		instance = this;
+	}
+
+	@Override
+	public void onPause() {
+		super.onPause();
+		// instance = null;
 	}
 }

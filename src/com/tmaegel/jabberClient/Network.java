@@ -349,11 +349,11 @@ public class Network extends AsyncTask<String, Integer, String> {
 			/**
 			 * MESSAGE
 			 */
-			/* case Constants.MESSAGE:
+			case Constants.C_SEND_MESSAGE:
 				Log.d(Constants.LOG_TAG, "Send message");
-				Log.d(Constants.LOG_TAG, "TO: " + obj.getTo() + ", BODY: " + obj.getBody());
-				writeStream("<message to='" + obj.getTo() + "'><body>" + obj.getBody() + "</body></message>");
-				break; */
+				/*Log.d(Constants.LOG_TAG, "TO: " + obj.getTo() + ", BODY: " + obj.getBody());
+				writeStream("<message to='" + obj.getTo() + "'><body>" + obj.getBody() + "</body></message>");*/
+				break;
 		}
 	}
 
