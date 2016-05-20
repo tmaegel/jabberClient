@@ -64,11 +64,11 @@ public class ConversationAdapter extends ArrayAdapter {
 			history.add(msg);
 			super.add(msg);
 			if (MainActivity.instance != null) {
-				MainActivity.instance.net.sendRequest(Constants.C_SEND_MESSAGE);
+				MainActivity.instance.net.sendMessage(msg);
 			}
 		} else {
-			// history.add(msg);
-			// super.add(msg);
+			history.add(msg);
+			super.add(msg);
 		}
 	}
 

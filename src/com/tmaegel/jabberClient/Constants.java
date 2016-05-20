@@ -56,6 +56,9 @@ final public class Constants {
 	public static final int S_ROSTER_PUSH			= 26;			/**< type=set */
 	public static final int S_ROSTER_ERROR			= 28;			/**< type=error */
 
+	/** Client side */
 	public static final int C_SEND_MESSAGE			= 30;
+	/**< Server side */
+	public static final int RECV_MESSAGE			= 31;
 
 }

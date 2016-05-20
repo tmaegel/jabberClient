@@ -30,7 +30,7 @@ public class Stanza {
 	public ArrayList<Contact> items;
 
 	/**< message specific attributes */
-	// ...
+	public Message message;
 
 	/**< presence specific attributes */
 	// ...
@@ -42,5 +42,7 @@ public class Stanza {
 		this.stanzaType = stanzaType;
 		this.mechanism = new ArrayList<String>();
 		this.items = new ArrayList<Contact>();
+
+		message = new Message();
 	}
 }

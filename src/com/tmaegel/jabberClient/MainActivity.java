@@ -29,6 +29,8 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.net.NetworkInfo;
 import android.net.ConnectivityManager;
 
+import android.support.v4.content.LocalBroadcastManager;
+
 public class MainActivity extends Activity {
 
 	public static MainActivity instance = null;
@@ -39,6 +41,7 @@ public class MainActivity extends Activity {
 	// public SQLController dbCon;
 
 	// intents
+	public Intent convInt;
 	public Intent setStatInt;
 	public Intent prefInt;
 
@@ -79,7 +82,7 @@ public class MainActivity extends Activity {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				String jid = contacts.get(position).getJid();
-				Intent convInt = new Intent(view.getContext(), ConversationActivity.class);
+				convInt = new Intent(view.getContext(), ConversationActivity.class);
 				convInt.putExtra("jid", jid);
 				startActivityForResult(convInt, START_CONVERSATION);
 			}
@@ -146,6 +149,19 @@ public class MainActivity extends Activity {
 		contacts.clear();
 		contacts.addAll(items);
 		listAdapter.notifyDataSetChanged();
+	}
+
+	/**
+	 * Push message to conversation activity
+	 */
+	public void pushMessageToHistory() {
+		Log.d(Constants.LOG_TAG, "Push message to history...");
+		Intent intent = new Intent("receive-message");
+		/**
+		 * @todo serialize message object
+		 */
+		intent.putExtra("message", "test message");
+		LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 	}
 
 	/**

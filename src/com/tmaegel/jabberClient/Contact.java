@@ -59,7 +59,7 @@ public class Contact {
 	}
 
 	public String getJid() {
-		if(jid.isEmpty() || jid == null) {
+		if(jid == null || jid.isEmpty()) {
 			Log.d(Constants.LOG_TAG, "Empty jid string. No return value.");
 			return null;
 		}
@@ -68,7 +68,7 @@ public class Contact {
 	}
 
 	public String getName() {
-		if(name.isEmpty() || name == null) {
+		if(name == null || name.isEmpty()) {
 			Log.d(Constants.LOG_TAG, "Empty name string. No return value.");
 			return null;
 		}
@@ -77,7 +77,7 @@ public class Contact {
 	}
 
 	public String getGroup() {
-		if(group.isEmpty() || group == null) {
+		if(group == null || group.isEmpty()) {
 			Log.d(Constants.LOG_TAG, "Empty group string. No return value.");
 			return null;
 		}

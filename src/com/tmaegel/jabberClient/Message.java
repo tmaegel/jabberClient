@@ -12,6 +12,8 @@ public class Message {
 	private String subject;
 	private String body;
 	private String thread;
+	private String type;
+	private String lang;
 
 	// private String date;
 
@@ -19,47 +21,146 @@ public class Message {
 
 	}
 
+	/**
+	 * GETTER
+	 */
+	public boolean isLocal() {
+ 		return local;
+ 	}
+
+	public void setId(String val) {
+		if(val.isEmpty()) {
+			id = null;
+		} else {
+			id = val;
+		}
+	}
+
+	public void setFrom(String val) {
+		if(val.isEmpty()) {
+			from = null;
+		} else {
+			from = val;
+		}
+	}
+
 	public void setTo(String val) {
 		if(val.isEmpty()) {
-			Log.d(Constants.LOG_TAG, "Empty to string. Doesn't set to.");
 			to = null;
 		} else {
-			this.to = val;
+			to = val;
+		}
+	}
+
+	public void setSubject(String val) {
+		if(val.isEmpty()) {
+			subject = null;
+		} else {
+			subject = val;
 		}
 	}
 
 	public void setBody(String val) {
 		if(val.isEmpty()) {
-			Log.d(Constants.LOG_TAG, "Empty body string. Doesn't set body.");
 			body = null;
 		} else {
-			this.body = val;
+			body = val;
 		}
 	}
 
-	public void setLocal(boolean local) {
-		this.local = local;
+	public void setThread(String val) {
+		if(val.isEmpty()) {
+			thread = null;
+		} else {
+			thread = val;
+		}
 	}
 
-	public String getBody() {
-		if(body.isEmpty() || body == null) {
-			Log.d(Constants.LOG_TAG, "Empty body string. No return value.");
+	public void setType(String val) {
+		if(val.isEmpty()) {
+			type = null;
+		} else {
+			type = val;
+		}
+	}
+
+	public void setLang(String val) {
+		if(val.isEmpty()) {
+			lang = null;
+		} else {
+			lang = val;
+		}
+	}
+
+	/**
+	  SETTER
+	 */
+
+	public void setLocal(boolean val) {
+		local = val;
+	}
+
+	public String getId() {
+		if(id == null || id.isEmpty()) {
 			return null;
 		}
 
-		return body;
+		return id;
+	}
+
+	public String getFrom() {
+		if(from == null || from.isEmpty()) {
+			return null;
+		}
+
+		return from;
 	}
 
 	public String getTo() {
-		if(to.isEmpty() || to == null) {
-			Log.d(Constants.LOG_TAG, "Empty to string. No return value.");
+		if(to == null || to.isEmpty()) {
 			return null;
 		}
 
 		return to;
 	}
 
-	public boolean isLocal() {
-		return this.local;
+	public String getSubject() {
+		if(subject == null || subject.isEmpty()) {
+			return null;
+		}
+
+		return subject;
+	}
+
+	public String getBody() {
+		if(body == null || body.isEmpty()) {
+			return null;
+		}
+
+		return body;
+	}
+
+	public String getThread() {
+		if(thread == null || thread.isEmpty()) {
+			return null;
+		}
+
+		return thread;
+	}
+
+	public String getType() {
+		if(type.isEmpty() || type == null) {
+			return null;
+		}
+
+		return type;
+	}
+
+	public String getLang() {
+		if(lang.isEmpty() || lang == null) {
+			return null;
+		}
+
+		return lang;
 	}
 }

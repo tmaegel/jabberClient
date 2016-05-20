@@ -45,6 +45,7 @@ public class Network extends AsyncTask<String, Integer, String> {
 	// objects
 	public Stanza stanza;
 	public Contact contact;
+	public Message message;
 
 	private String serverIpAddr = "192.168.178.103";	// alternativ "www.maegel-online.de" or "37.187.216.212"
 	private int serverPort = 5222; 						// only for client to server communication, 5269 for server to server communication
@@ -167,8 +168,6 @@ public class Network extends AsyncTask<String, Integer, String> {
 	}
 
 	protected void onProgressUpdate(Integer... type) {
-		// MainActivity.convAct.convAdapter.addMessageToHistory(obj[0], false);
-
 		switch(type[0]) {
 			/**
 			 * Roster
@@ -183,6 +182,14 @@ public class Network extends AsyncTask<String, Integer, String> {
 			case Constants.S_ROSTER_ERROR:
 
 				break;
+
+			/**
+			 * Message
+			 */
+			case Constants.RECV_MESSAGE:
+				// MainActivity.instance.convAct.convAdapter.addMessageToHistory(obj[0], false);
+				MainActivity.instance.pushMessageToHistory();
+ 				break;
 		}
 	}
 
@@ -271,6 +278,9 @@ public class Network extends AsyncTask<String, Integer, String> {
 
 			if(stanza != null && stanza.stanzaType > 0) {
 				switch(stanza.stanzaType) {
+					/**
+					 * IQ
+					 */
 					case Constants.IQ:
 						if(stanza.type.equals("result")) {
 							Log.d(Constants.LOG_TAG, "Received roster result");
@@ -283,11 +293,33 @@ public class Network extends AsyncTask<String, Integer, String> {
 							publishProgress(Constants.S_ROSTER_ERROR);
 						}
 						break;
+
+					/**
+					 * PRESENCE
+					 */
 					case Constants.PRESENCE:
 
 						break;
-					case Constants.MESSAGE:
 
+					/**
+					 * MESSAGE
+					 */
+					case Constants.MESSAGE:
+						Log.d(Constants.LOG_TAG, "Receive message object");
+						message = stanza.message;
+						String type = message.getType();
+						Log.d(Constants.LOG_TAG, "Message type: " + type);
+						if(type.equals("chat")) {
+							publishProgress(Constants.RECV_MESSAGE);
+						} else if(type.equals("groupchat")) {
+
+						} else if(type.equals("headline")) {
+
+						} else if(type.equals("normal")) {
+
+						} else if(type.equals("error")) {
+
+						}
 						break;
 				}
 			} else {
@@ -355,6 +387,36 @@ public class Network extends AsyncTask<String, Integer, String> {
 				writeStream("<message to='" + obj.getTo() + "'><body>" + obj.getBody() + "</body></message>");*/
 				break;
 		}
+	}
+
+	/**
+	 * @brief Send message
+	 */
+	public void sendMessage(Message msg) {
+		String msgStr = "";
+
+		if(msg.getTo() != null) {
+			msgStr = "<message from='" + jid + "' to='" + msg.getTo() + "' id='sl3nx51f' type='chat' xml:lang='de'>";
+		} else {
+			Log.d(Constants.LOG_TAG, "No receiver detected.");
+			return;
+		}
+
+		if(msg.getSubject() != null) {
+			msgStr = msgStr + "<subject>" + msg.getSubject() + "</subject>";
+		}
+		if(msg.getBody() != null) {
+			msgStr = msgStr + "<body>" + msg.getBody() + "</body>";
+		}
+		if(msg.getThread() != null) {
+			msgStr = msgStr + "<thread>" + msg.getThread() + "</thread>";
+		}
+		msgStr = msgStr + "</message>";
+
+		Log.d(Constants.LOG_TAG, "Send message");
+		Log.d(Constants.LOG_TAG, "" +  msgStr);
+
+		writeStream(msgStr);
 	}
 
 	/**

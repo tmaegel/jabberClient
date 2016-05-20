@@ -6,7 +6,10 @@ import android.util.Log;
 
 import android.app.Activity;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.BroadcastReceiver;
 
 import android.view.KeyEvent;
 import android.view.View;
@@ -18,6 +21,8 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import android.support.v4.content.LocalBroadcastManager;
+
 public class ConversationActivity extends Activity {
 
 	// public references
@@ -28,12 +33,13 @@ public class ConversationActivity extends Activity {
 	private ImageButton btnSend;
 	private EditText textMsg;
 
-
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.conversation);
+
+		// msgBroadcast = new MessageBroadcast(this);
 
 		listView = (ListView)findViewById(R.id.conv_history);
 		btnSend = (ImageButton)findViewById(R.id.conv_send);
@@ -56,9 +62,34 @@ public class ConversationActivity extends Activity {
 		});
 	}
 
+	// handler for received Intents for the event
+	private BroadcastReceiver messageReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			String message = intent.getStringExtra("message");
+			Log.d(Constants.LOG_TAG, "Inner class");
+			Message msg = new Message();
+			msg.setBody(message);
+			msg.setLocal(false);
+			convAdapter.addMessage(msg);
+		}
+	};
+
 	/** Called when rebuild activity, switch in landscape mode */
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
 
 	}
+
+	@Override
+    protected void onResume() {
+		super.onResume();
+		LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver, new IntentFilter("receive-message"));
+    }
+
+    @Override
+    protected void onPause() {
+		LocalBroadcastManager.getInstance(this).unregisterReceiver(messageReceiver);
+		super.onPause();
+    }
 }

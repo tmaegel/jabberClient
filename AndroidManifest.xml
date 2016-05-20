@@ -44,12 +44,12 @@
 			android:name="ConversationActivity"
 			android:label="@string/act_conversation">
 		</activity>
-		
+
 		<activity
 			android:name="AddContactActivity"
 			android:label="@string/act_add_contact">
 		</activity>
-		
+
 		<activity
 			android:name="SetStatusActivity"
 			android:label="@string/act_set_status">

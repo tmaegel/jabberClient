@@ -73,11 +73,13 @@ public class Parser {
 	 * @brief Parsing commonn attributes of iq, presence or message tag
 	 */
 	public void parseCommon() {
-		stanza.stanzaType = rootTag;
-
 		Log.d(Constants.LOG_TAG, "Parsing common attributes of "  + tag + " tag");
 		for(int i = 0; i < parser.getAttributeCount(); i++) {
 			switch(parser.getAttributeName(i)) {
+				case "id":
+					stanza.id = parser.getAttributeValue(i);
+					Log.d(Constants.LOG_TAG, "ID = " + stanza.id);
+					break;
 				case "to":
 					stanza.to = parser.getAttributeValue(i);
 					Log.d(Constants.LOG_TAG, "TO = " + stanza.to);
@@ -85,10 +87,6 @@ public class Parser {
 				case "from":
 					stanza.from = parser.getAttributeValue(i);
 					Log.d(Constants.LOG_TAG, "FROM = " + stanza.from);
-					break;
-				case "id":
-					stanza.id = parser.getAttributeValue(i);
-					Log.d(Constants.LOG_TAG, "ID = " + stanza.id);
 					break;
 				case "type":
 					stanza.type = parser.getAttributeValue(i);
@@ -161,9 +159,55 @@ public class Parser {
 		}
 	}
 
+	/**
+	 * @brief Parse message attributes and tags
+	 * @param parseText - true parse body, false parse attributes
+	 */
+	public void parseMessage(boolean parseText) {
+		boolean toContinue = false;
+
+		if(parseText) {
+			if(tag.equals("subject")) {
+				Log.d(Constants.LOG_TAG, "SUBJECT " + parser.getText());
+				stanza.message.setSubject(parser.getText());
+			} else if(tag.equals("body")) {
+				Log.d(Constants.LOG_TAG, "BODY " + parser.getText());
+				stanza.message.setBody(parser.getText());
+			} else if(tag.equals("thread")) {
+				Log.d(Constants.LOG_TAG, "THREAD " + parser.getText());
+				stanza.message.setThread(parser.getText());
+			}
+		} else {
+			for(int i = 0; i < parser.getAttributeCount(); i++) {
+				switch(parser.getAttributeName(i)) {
+					case "id":
+						stanza.message.setId(parser.getAttributeValue(i));
+						Log.d(Constants.LOG_TAG, "ID = " + stanza.message.getId());
+						break;
+					case "from":
+						stanza.message.setFrom(parser.getAttributeValue(i));
+						Log.d(Constants.LOG_TAG, "FROM = " + stanza.message.getFrom());
+						break;
+					case "to":
+						stanza.message.setTo(parser.getAttributeValue(i));
+						Log.d(Constants.LOG_TAG, "TO = " + stanza.message.getTo());
+						break;
+					case "type":
+						stanza.message.setType(parser.getAttributeValue(i));
+						Log.d(Constants.LOG_TAG, "TYPE = " + stanza.message.getType());
+						break;
+					case "xml:lang":
+						stanza.message.setLang(parser.getAttributeValue(i));
+						Log.d(Constants.LOG_TAG, "LANG = " + stanza.message.getLang());
+						break;
+				}
+			}
+		}
+	}
+
 	public void parse(boolean parseText) {
 		if(stanza != null) {
-			switch(rootTag) {
+			switch(stanza.stanzaType) {
 				/**< STREAM:STREAM */
 				case Constants.STREAM_INIT:
 					parseStream(parseText);
@@ -178,7 +222,7 @@ public class Parser {
 					break;
 				/**< MESSAGE */
 				case Constants.MESSAGE:
-					// ...
+					parseMessage(parseText);
 					break;
 			}
 		}
@@ -191,7 +235,7 @@ public class Parser {
 			/**< STREAM:STREAM */
 			case Constants.TAG_STREAM_INIT:
 				Log.d(Constants.LOG_TAG, "TAG <STREAM:STREAM>");
-				rootTag = Constants.STREAM_INIT;
+				stanza.stanzaType = Constants.STREAM_INIT;
 				parseCommon();
 				break;
 			/**< STREAM:FEATURES */
@@ -207,20 +251,21 @@ public class Parser {
 			/**< IQ */
 			case Constants.TAG_IQ:
 				Log.d(Constants.LOG_TAG, "TAG <IQ>");
-				rootTag = Constants.IQ;
+				stanza.stanzaType = Constants.IQ;
 				parseCommon();
 				break;
 			/**< PRESENCE */
 			case Constants.TAG_PRESENCE:
 				Log.d(Constants.LOG_TAG, "TAG <PRESENCE>");
-				rootTag = Constants.PRESENCE;
+				stanza.stanzaType = Constants.PRESENCE;
 				parseCommon();
 				break;
 			/**< MESSAGE */
 			case Constants.TAG_MESSAGE:
 				Log.d(Constants.LOG_TAG, "TAG <MESSAGE>");
-				rootTag = Constants.MESSAGE;
-				parseCommon();
+				stanza.stanzaType = Constants.MESSAGE;
+				// parseCommon();
+				parseMessage(false);
 				break;
 
 			/**
@@ -230,13 +275,11 @@ public class Parser {
 		 	/**< SUCCESS */
 			case Constants.TAG_STREAM_SUCCESS:
 				Log.d(Constants.LOG_TAG, "TAG <SUCESS>");
-				rootTag = Constants.STREAM_SUCCESS;
 				stanza.stanzaType = Constants.STREAM_SUCCESS;
 				break;
 			/**< FAILURE */
 			case Constants.TAG_STREAM_FAILURE:
 				Log.d(Constants.LOG_TAG, "TAG <FAILURE>");
-				rootTag = Constants.STREAM_FAILURE;
 				stanza.stanzaType = Constants.STREAM_FAILURE;
 				break;
 
