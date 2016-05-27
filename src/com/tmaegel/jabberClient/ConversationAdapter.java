@@ -1,6 +1,7 @@
 package com.tmaegel.jabberClient;
 
 import com.tmaegel.jabberClient.Constants;
+import com.tmaegel.jabberClient.XMPP;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,7 +65,7 @@ public class ConversationAdapter extends ArrayAdapter {
 			history.add(msg);
 			super.add(msg);
 			if (MainActivity.instance != null) {
-				MainActivity.instance.net.sendMessage(msg);
+				XMPP.sendMessage(msg);
 			}
 		} else {
 			history.add(msg);

@@ -20,7 +20,9 @@ public class Stanza {
 	public String type = "";
 	public String lang = "";
 
-	// public String xmlns = "";
+	public String xmlns = "";
+
+	public String jid = "";
 
 	/** inital stream negotiation */
 	public ArrayList<String> mechanism;

@@ -48,7 +48,7 @@ final public class Constants {
 
 
 	/**< Client side */
-	public static final int C_ROSTER_REQUEST		= 21;			/**< type=get */
+	// public static final int C_ROSTER_REQUEST		= 21;			/**< type=get */
 	public static final int C_ROSTER_SET			= 22;			/**< type=set */
 	public static final int C_ROSTER_RESPONSE		= 23;			/**< type=result */
 	/**< Server side */
@@ -57,7 +57,7 @@ final public class Constants {
 	public static final int S_ROSTER_ERROR			= 28;			/**< type=error */
 
 	/** Client side */
-	public static final int C_SEND_MESSAGE			= 30;
+	// public static final int C_SEND_MESSAGE			= 30;
 	/**< Server side */
 	public static final int RECV_MESSAGE			= 31;
 

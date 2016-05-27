@@ -53,6 +53,7 @@ public class ConversationActivity extends Activity {
 		btnSend.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 				Message msg = new Message();
+				msg.setFrom(MainActivity.instance.net.fullJid);
 				msg.setBody(textMsg.getText().toString());
 				msg.setLocal(true);
 				convAdapter.addMessage(msg);
@@ -66,12 +67,8 @@ public class ConversationActivity extends Activity {
 	private BroadcastReceiver messageReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			String message = intent.getStringExtra("message");
-			Log.d(Constants.LOG_TAG, "Inner class");
-			Message msg = new Message();
-			msg.setBody(message);
-			msg.setLocal(false);
-			convAdapter.addMessage(msg);
+			Log.d(Constants.LOG_TAG, "" + (Message)intent.getSerializableExtra("message"));
+			convAdapter.addMessage((Message)intent.getSerializableExtra("message"));
 		}
 	};
 

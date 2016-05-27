@@ -96,10 +96,10 @@ public class Parser {
 					stanza.lang = parser.getAttributeValue(i);
 					Log.d(Constants.LOG_TAG, "LANG = " + stanza.lang);
 					break;
-				/*case "xmlns":
+				case "xmlns":
 					stanza.xmlns = parser.getAttributeValue(i);
 					Log.d(Constants.LOG_TAG, "XMLNS = " + stanza.xmlns);
-					break;*/
+					break;
 			}
 		}
 	}
@@ -129,6 +129,9 @@ public class Parser {
 			if(tag.equals("group")) {
 				Log.d(Constants.LOG_TAG, "GROUP " + parser.getText());
 				stanza.items.get(stanza.items.size()-1).group = parser.getText();
+			} else if(tag.equals("jid")) {
+				Log.d(Constants.LOG_TAG, "JID " + parser.getText());
+				stanza.jid = parser.getText();
 			}
 		} else {
 			if(tag.equals("item")) {

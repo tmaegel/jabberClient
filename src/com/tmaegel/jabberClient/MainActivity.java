@@ -38,6 +38,7 @@ public class MainActivity extends Activity {
 	// public references
 	public ConversationActivity convAct;
 	public Network net;
+	public Session session;
 	// public SQLController dbCon;
 
 	// intents
@@ -63,6 +64,8 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.main);
 
 		instance = this;
+
+		session = new Session("user1", "localhost", "my-resource", "123456");
 
 		// database
 		// dbCon = new SQLController(main);
@@ -157,10 +160,7 @@ public class MainActivity extends Activity {
 	public void pushMessageToHistory() {
 		Log.d(Constants.LOG_TAG, "Push message to history...");
 		Intent intent = new Intent("receive-message");
-		/**
-		 * @todo serialize message object
-		 */
-		intent.putExtra("message", "test message");
+		intent.putExtra("message", net.message);
 		LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 	}
 
@@ -171,8 +171,7 @@ public class MainActivity extends Activity {
 		switch(requestCode) {
 			case ADD_ROSTER_ITEM:
 				if (resultCode == RESULT_OK) {
-					net.contact = new Contact(data.getStringExtra("jid"), data.getStringExtra("name"), data.getStringExtra("group"));
-					net.sendRequest(Constants.C_ROSTER_SET);
+					XMPP.setRoster(new Contact(data.getStringExtra("jid"), data.getStringExtra("name"), data.getStringExtra("group")));
 				}
 				break;
 		}

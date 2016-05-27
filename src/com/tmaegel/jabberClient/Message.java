@@ -2,24 +2,31 @@ package com.tmaegel.jabberClient;
 
 import android.util.Log;
 
-public class Message {
+import java.io.Serializable;
+
+public class Message implements Serializable {
 
 	private boolean local = false;
 
 	private String id;
+	private String type;
+	private String lang;
 	private String from;
 	private String to;
 	private String subject;
 	private String body;
 	private String thread;
-	private String type;
-	private String lang;
 
 	// private String date;
 
 	public Message() {
 
 	}
+
+	@Override
+    public String toString() {
+		return "Message [id=" + id + ", type=" + type + ", lang=" + lang + ", from=" + from + ", to=" + to + ", subject=" + subject + ", body=" + body + ", thread=" + thread + "]";
+    }
 
 	/**
 	 * GETTER

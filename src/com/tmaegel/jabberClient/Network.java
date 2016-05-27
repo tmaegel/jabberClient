@@ -1,6 +1,7 @@
 package com.tmaegel.jabberClient;
 
 import com.tmaegel.jabberClient.Constants;
+import com.tmaegel.jabberClient.XMPP;
 
 import android.os.Bundle;
 import android.os.AsyncTask;
@@ -36,11 +37,9 @@ public class Network extends AsyncTask<String, Integer, String> {
 	private Socket socket;
 	private InputStream input;
 	private BufferedWriter output;
+	private Thread thread;
 	private Parser parser;
 
-	// thread
-	private Thread sendThread;
-	private Thread recvThread;
 
 	// objects
 	public Stanza stanza;
@@ -54,12 +53,12 @@ public class Network extends AsyncTask<String, Integer, String> {
 
 	// Account information
 	private String jid = "user1@localhost";
-	private String fullJid;
+	public String fullJid;
 
 	// Authentifaction (TEST)
 	private String senderUser = "user1";
 	private String password = "123456";
-	private String resource = "ressource";
+	private String resource = "my-resource";
 	private String host = "localhost";
 
 	private boolean connected = false;
@@ -67,52 +66,29 @@ public class Network extends AsyncTask<String, Integer, String> {
 
 	public Network(MainActivity main) {
 		this.main = main;
+
+		parser = new Parser();
+	}
+
+	/**
+	 * Things to be done before execution of long running operation
+	 */
+	@Override
+	protected void onPreExecute() {
+		Log.d(Constants.LOG_TAG, "exe onPreExecute()");
 	}
 
 	@Override
 	protected String doInBackground(String... params) {
-		// Log.d(Constants.LOG_TAG, "exec doInBackground()");
+		Log.d(Constants.LOG_TAG, "exec doInBackground()");
+
 		Log.d(Constants.LOG_TAG, "> Network is starting");
-
-		parser = new Parser();
-
-		/**
-		 * Sender loop
-		 */
-		sendThread = new Thread(new Runnable() {
-		    public void run() {
-		    	try {
-				    while(connected) {
-				    	Thread.sleep(3000);
-				    }
-				} catch(Exception e) {
-				    Log.e(Constants.LOG_TAG, "Error: Sender loop", e);
-				}
-		    }
-    	});
-
-    	/**
-    	 * Receiver loop
-    	 */
-		recvThread = new Thread(new Runnable() {
-		    public void run() {
-		    	try {
-				    while(connected) {
-				        // Receive response in the loop
-						recvResponse();
-
-				        Thread.sleep(3000);
-				    }
-				} catch(Exception e) {
-				    Log.e(Constants.LOG_TAG, "Error: Receiver loop", e);
-				}
-		    }
-    	});
 
 		/**
 		 * Initialization
 		 */
-    	try {
+		try {
+
 			// InetAddress serverAddr = InetAddress.getByName(serverIpAddr);
 			Log.d(Constants.LOG_TAG, "> Open socket to " + serverIpAddr + ":" + serverPort);
 			socket = new Socket(serverIpAddr, serverPort);
@@ -123,16 +99,22 @@ public class Network extends AsyncTask<String, Integer, String> {
 			input = socket.getInputStream();
 			output = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
 
-			sendThread.start();
-
 			try {
-				// first authenticate
-				if(initStream() == true) {
-					recvThread.start();
-				} else {
-					// close socket
-					connected = false;
+
+				initStream();
+
+				while(connected && initialized) {
+					// Receive response in the loop
+					Log.d(Constants.LOG_TAG, "Receiver loop");
+					recvResponse();
+
+					// writeStream("<message from='user1@localhost' to='user2@localhost' id='sl3nx51f' type='chat' xml:lang='de'><body>inital message</body></message>");
+					// String test = readStream();
+					// Log.d(Constants.LOG_TAG, "Char " + test);
+
+					// Thread.sleep(3000);
 				}
+
 			} catch(Exception e) {
 				Log.e(Constants.LOG_TAG, "Error: IO", e);
 				socket.close();
@@ -144,10 +126,6 @@ public class Network extends AsyncTask<String, Integer, String> {
 			connected = false;
 		}
 
-    	// Starting threads
-		// sendThread.start();
-		// recvThread.start();
-
 		return null; // returns what you want to pass to the onPostExecute()
 	}
 
@@ -157,14 +135,6 @@ public class Network extends AsyncTask<String, Integer, String> {
 	@Override
 	protected void onPostExecute(String result) {
 		// Log.d(Constants.LOG_TAG, "exec onPostExecute()");
-	}
-
-	/**
-	 * Things to be done before execution of long running operation
-	 */
-	@Override
-	protected void onPreExecute() {
-		// Log.d(Constants.LOG_TAG, "exe onPreExecute()");
 	}
 
 	protected void onProgressUpdate(Integer... type) {
@@ -200,6 +170,7 @@ public class Network extends AsyncTask<String, Integer, String> {
 	 */
 	public boolean initStream() {
 		try {
+
 			boolean plainAuth = false;
 
 			Log.d(Constants.LOG_TAG, "> Initialization ...");
@@ -246,17 +217,23 @@ public class Network extends AsyncTask<String, Integer, String> {
 			recvResponse();
 
 			// Resource binding, Server generate resource
-			writeStream("<iq id='yhc13a95' type='set'><bind xmlns='urn:ietf:params:xml:ns:xmpp-bind'/></iq>");
+			// writeStream("<iq id='yhc13a95' type='set'><bind xmlns='urn:ietf:params:xml:ns:xmpp-bind'/></iq>");
+			// Resource binding
+			// writeStream("<iq id='wy2xa82b4' type='set'><bind xmlns='urn:ietf:params:xml:ns:xmpp-bind'><resource>" + resource + "</resource></bind></iq>");
+			// recvResponse();
+			XMPP.bindResource(resource);
 			recvResponse();
+			fullJid = stanza.jid;
 
 			// writeStream("<iq from='" + fullJid + "' type='get' id='roster_1'><query xmlns='jabber:iq:roster'/></iq>");
 			// recvResponse();
 
+			// Initial roster request
+			XMPP.requestRoster();
+			recvResponse();
+
 			Log.d(Constants.LOG_TAG, "Initialization success");
 			initialized = true;
-
-			// Initial roster request
-			sendRequest(Constants.C_ROSTER_REQUEST);
 
 		} catch(Exception e) {
 			Log.e(Constants.LOG_TAG, "Error: Init stream", e);
@@ -341,82 +318,6 @@ public class Network extends AsyncTask<String, Integer, String> {
 		// <iq from='juliet@example.com/chamber' type='set' id='roster_3'><query xmlns='jabber:iq:roster'><item jid='romeo@example.net' name='Romeo' subscription='both'><group>Friends</group><group>Lovers</group></item></query></iq>
 		/**< delete a roster item */
 		// <iq from='juliet@example.com/balcony' type='set' id='roster_4'><query xmlns='jabber:iq:roster'><item jid='nurse@example.com' subscription='remove'/></query></iq>
-
-		switch(type) {
-			/**
-			 * ROSTER
-			 * @todo generate random id
-			 */
-			/** Get roster  */
-			case Constants.C_ROSTER_REQUEST:
-				Log.d(Constants.LOG_TAG, "Roster request");
-				writeStream("<iq from='" + fullJid + "' type='get' id='roster_1'><query xmlns='jabber:iq:roster'/></iq>");
-				break;
-			/** Add roster item */
-			case Constants.C_ROSTER_SET:
-				if(contact != null) {
-					if(contact.jid != null) {
-						String rosterStream = "<iq from='" + jid + "' type='set' id='roster_2'><query xmlns='jabber:iq:roster'><item jid='" + contact.jid + "'";
-						if(contact.name != null) {
-							rosterStream = rosterStream + " name='" + contact.name + "'";
-						}
-						if(contact.group == null) {
-							rosterStream = rosterStream + "/>";
-						} else {
-							rosterStream = rosterStream + "><group>" + contact.group + "</group></item>";
-						}
-						rosterStream = rosterStream + "</query></iq>";
-
-						Log.d(Constants.LOG_TAG, "Add roster item");
-						writeStream(rosterStream);
-					} else {
-						Log.d(Constants.LOG_TAG, "Jid is empty. No Roster set.");
-					}
-				} else {
-					Log.d(Constants.LOG_TAG, "No roster item found");
-				}
-				contact = null;
-				break;
-
-			/**
-			 * MESSAGE
-			 */
-			case Constants.C_SEND_MESSAGE:
-				Log.d(Constants.LOG_TAG, "Send message");
-				/*Log.d(Constants.LOG_TAG, "TO: " + obj.getTo() + ", BODY: " + obj.getBody());
-				writeStream("<message to='" + obj.getTo() + "'><body>" + obj.getBody() + "</body></message>");*/
-				break;
-		}
-	}
-
-	/**
-	 * @brief Send message
-	 */
-	public void sendMessage(Message msg) {
-		String msgStr = "";
-
-		if(msg.getTo() != null) {
-			msgStr = "<message from='" + jid + "' to='" + msg.getTo() + "' id='sl3nx51f' type='chat' xml:lang='de'>";
-		} else {
-			Log.d(Constants.LOG_TAG, "No receiver detected.");
-			return;
-		}
-
-		if(msg.getSubject() != null) {
-			msgStr = msgStr + "<subject>" + msg.getSubject() + "</subject>";
-		}
-		if(msg.getBody() != null) {
-			msgStr = msgStr + "<body>" + msg.getBody() + "</body>";
-		}
-		if(msg.getThread() != null) {
-			msgStr = msgStr + "<thread>" + msg.getThread() + "</thread>";
-		}
-		msgStr = msgStr + "</message>";
-
-		Log.d(Constants.LOG_TAG, "Send message");
-		Log.d(Constants.LOG_TAG, "" +  msgStr);
-
-		writeStream(msgStr);
 	}
 
 	/**
@@ -436,14 +337,6 @@ public class Network extends AsyncTask<String, Integer, String> {
 	}
 
 	/**
-	 * @brief Close stream
-	 */
-	public void closeStream() {
-		writeStream("</stream:stream>");
-		readStream();
-	}
-
-	/**
 	 * @todo: Prüfen ob letztes Zeichen angekommen ist
 	 *	      Aktuelle Lösung nicht sauber
 	 */
@@ -455,8 +348,7 @@ public class Network extends AsyncTask<String, Integer, String> {
 		try {
 			while(!endOfStream && (character = input.read()) != -1) {
 				tmp = tmp + "" + (char)character;
-
-				if(input.available() == 0) {
+				if(input.available() <= 0) {
 					endOfStream = true;
 				}
 			}
