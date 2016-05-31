@@ -3,8 +3,10 @@ package com.tmaegel.jabberClient;
 import com.tmaegel.jabberClient.Constants;
 
 import android.os.Bundle;
+import android.os.IBinder;
 
 import android.util.Log;
+
 import java.util.List;
 import java.util.ArrayList;
 
@@ -15,10 +17,15 @@ import android.view.MenuItem;
 
 import android.app.ActionBar.Tab;
 import android.app.Activity;
+import android.app.Service;
 
 import android.content.Context;
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.Resources;
+import android.content.ServiceConnection;
+import android.content.BroadcastReceiver;
 
 import android.widget.TextView;
 import android.widget.ListView;
@@ -35,9 +42,11 @@ public class MainActivity extends Activity {
 
 	public static MainActivity instance = null;
 
+	public NotificationService notificationService;
+
 	// public references
 	public ConversationActivity convAct;
-	public Network net;
+	// public Network net;
 	public Session session;
 	// public SQLController dbCon;
 
@@ -48,6 +57,8 @@ public class MainActivity extends Activity {
 
 	public ListAdapter listAdapter;
 	public ArrayList<Contact> contacts;
+
+	boolean isBound = false;
 
 	/**
 	 * REQUEST CODE OF CHILD ACTIVITIES
@@ -92,16 +103,61 @@ public class MainActivity extends Activity {
 		});
 
 		// Network
-		ConnectivityManager connMgr = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+		/*ConnectivityManager connMgr = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 		if(networkInfo != null && networkInfo.isConnected()) {
 			Log.i(Constants.LOG_TAG, "> Network is ready");
 			net = new Network(this);
-    		net.execute(/*sleepTime*/);
-		} else {
+    		net.execute(/*sleepTime*///);
+		/*} else {
 			Log.i(Constants.LOG_TAG, "> No network available");
-		}
+		}*/
 	}
+
+	/** Defines callbacks for service binding, passed to bindService() */
+	private ServiceConnection myConnection = new ServiceConnection() {
+		@Override
+		public void onServiceConnected(ComponentName className, IBinder service) {
+			// We've bound to LocalService, cast the IBinder and get LocalService instance
+			NotificationService.LocalBinder binder = (NotificationService.LocalBinder) service;
+			notificationService = binder.getService();
+			isBound = true;
+		}
+
+		@Override
+		public void onServiceDisconnected(ComponentName arg0) {
+			isBound = false;
+		}
+	};
+
+	// handler for received Intents for the event
+	private BroadcastReceiver serviceReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			Log.d(Constants.LOG_TAG, "> Receive broadcast");
+
+			Message message = (Message)intent.getSerializableExtra("message");
+			if(message != null) {
+				Log.d(Constants.LOG_TAG, "> Push message to history");
+				Log.d(Constants.LOG_TAG, "" +  message);
+				//intent.putExtra("message", net.message);
+				//LocalBroadcastManager.getInstance(MainActivity.instance).sendBroadcast(intent);
+				pushMessageToHistory(message);
+				return;
+			}
+
+			Contact contact = (Contact)intent.getSerializableExtra("roster");
+			if(contact != null) {
+
+				Log.d(Constants.LOG_TAG, "> Push contact to list");
+				contacts.add((Contact)intent.getSerializableExtra("roster"));
+				listAdapter.notifyDataSetChanged();
+				return;
+			}
+
+
+		}
+	};
 
 	/** Called when create menu  */
 	@Override
@@ -146,21 +202,11 @@ public class MainActivity extends Activity {
 	}
 
 	/**
-	 * Refresh contact list
-	 */
-	public void listUpdate(ArrayList<Contact> items) {
-		contacts.clear();
-		contacts.addAll(items);
-		listAdapter.notifyDataSetChanged();
-	}
-
-	/**
 	 * Push message to conversation activity
 	 */
-	public void pushMessageToHistory() {
-		Log.d(Constants.LOG_TAG, "Push message to history...");
+	public void pushMessageToHistory(Message message) {
 		Intent intent = new Intent("receive-message");
-		intent.putExtra("message", net.message);
+		intent.putExtra("message", message);
 		LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 	}
 
@@ -181,11 +227,24 @@ public class MainActivity extends Activity {
 	public void onResume() {
 		super.onResume();
 		instance = this;
+
+		LocalBroadcastManager.getInstance(this).registerReceiver(serviceReceiver, new IntentFilter("service-broadcast"));
+
+		Intent intent = new Intent(this, NotificationService.class);
+		bindService(intent, myConnection, Context.BIND_AUTO_CREATE);
+		startService(intent);
 	}
 
 	@Override
 	public void onPause() {
 		super.onPause();
 		// instance = null;
+
+		LocalBroadcastManager.getInstance(this).unregisterReceiver(serviceReceiver);
+
+		if (isBound) {
+            unbindService(myConnection);
+            isBound = false;
+        }
 	}
 }

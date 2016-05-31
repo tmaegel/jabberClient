@@ -4,7 +4,9 @@ import com.tmaegel.jabberClient.Constants;
 
 import android.util.Log;
 
-public class Contact {
+import java.io.Serializable;
+
+public class Contact implements Serializable {
 
 	public String jid;
 	public String name;
@@ -24,6 +26,11 @@ public class Contact {
 	public Contact() {
 
 	}
+
+	@Override
+    public String toString() {
+		return "Contact [jid=" + jid + ", name=" + name + ", group=" + group + ", subscription=" + subscription + ", ask=" + ask + ", approved=" + approved + "]";
+    }
 
 	public Contact(String jid, String name, String group) {
 		setJid(jid);

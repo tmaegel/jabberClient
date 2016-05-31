@@ -1,15 +1,95 @@
 package com.tmaegel.jabberClient;
 
 import android.util.Log;
+import android.util.Base64;
 
 final public class XMPP {
 
-    public static final void openStream(String resource) {
-        Log.d(Constants.LOG_TAG, "Open stream");
-        /**
-         * ...
-         */
+    /**
+     * @brief Initialization
+     * @param user user
+     * @param host host
+     * @param password password
+     * @param resource resource
+     */
+    public static final boolean initialize(String user, String host, String password, String resource) {
+        Log.d(Constants.LOG_TAG, "> Initialization ...");
+
+        String jid = user + "@" + host;
+
+        XMPP.openStream(jid, host, false);
+        MainActivity.instance.notificationService.recvResponse();
+
+        // authentifaction
+        XMPP.authenticate(user, password);
+        MainActivity.instance.notificationService.recvResponse();
+
+        // reopen stream
+        XMPP.openStream(jid, host, true);
+        MainActivity.instance.notificationService.recvResponse();
+
+        // resource binding
+        XMPP.bindResource(resource);
+        MainActivity.instance.notificationService.recvResponse();
+        // fullJid = stanza.jid;
+
+        // initial roster request
+        XMPP.requestRoster();
+        MainActivity.instance.notificationService.recvResponse();
+
+        Log.d(Constants.LOG_TAG, "> Initialization success");
+
+        return true;
     }
+
+    /**
+     * @brief Open stream
+     * @param from jid
+     * @param to host
+     */
+    public static final void openStream(String from, String to, boolean reopen) {
+        Log.d(Constants.LOG_TAG, "> Open stream");
+
+        if(to.isEmpty() || to == null) {
+            Log.d(Constants.LOG_TAG, ">> No host");
+            return;
+        }
+
+        String streamStr = "";
+
+        if(!reopen) {
+            streamStr = streamStr + "<?xml version='1.0'?>";
+        }
+        streamStr = streamStr + "<stream:stream to='" + to + "'";
+
+        if(!from.isEmpty() || from != null) {
+            Log.d(Constants.LOG_TAG, ">> Use normal authentifaction");
+            streamStr = streamStr + " from='" + from + "' version='1.0' xml:lang='de' xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams'>";
+        } else {
+            Log.d(Constants.LOG_TAG, ">> Use anonymous authentifaction");
+            streamStr = streamStr + " version='1.0' xml:lang='de' xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams'>";
+        }
+
+        MainActivity.instance.notificationService.writeStream(streamStr);
+
+    }
+
+    /**
+     * @brief authenticate
+     * @param user user
+     * @param password passwod
+     */
+    public static final void authenticate(String user, String password) {
+        Log.d(Constants.LOG_TAG, "> Authentifaction");
+
+        try {
+            String authStr = "\0" + user + "\0" + password;
+            MainActivity.instance.notificationService.writeStream("<auth xmlns='urn:ietf:params:xml:ns:xmpp-sasl' mechanism='PLAIN'>" + Base64.encodeToString(authStr.getBytes("UTF-8"), 0) + "</auth>");
+        } catch(Exception e) {
+            Log.e(Constants.LOG_TAG, "Error: authenticate", e);
+        }
+    }
+
 
     /**
      * @brief Bind resource, if resource null or empty esource generate by server
@@ -17,14 +97,21 @@ final public class XMPP {
      * @todo return value resource or error status
      */
     public static final void bindResource(String resource) {
-        Log.d(Constants.LOG_TAG, "Bind resource");
+        Log.d(Constants.LOG_TAG, "> Bind resource");
+
 
         String id = "xyz123";
+        String resourceStr = "<iq id='" + id + "' type='set'><bind xmlns='urn:ietf:params:xml:ns:xmpp-bind'";
         if(resource == null || resource.isEmpty()) {
-            MainActivity.instance.net.writeStream("<iq id='" + id + "' type='set'><bind xmlns='urn:ietf:params:xml:ns:xmpp-bind'/></iq>");
+            Log.d(Constants.LOG_TAG, ">> Use server side resource binding");
+            resourceStr = resourceStr + "/>";
         } else {
-            MainActivity.instance.net.writeStream("<iq id='" + id + "' type='set'><bind xmlns='urn:ietf:params:xml:ns:xmpp-bind'><resource>" + resource + "</resource></bind></iq>");
+            Log.d(Constants.LOG_TAG, ">> Use client side resource binding");
+            resourceStr = resourceStr + "><resource>" + resource + "</resource></bind>";
         }
+
+        resourceStr = resourceStr + "</iq>";
+        MainActivity.instance.notificationService.writeStream(resourceStr);
     }
 
     /**
@@ -33,7 +120,7 @@ final public class XMPP {
      * @todo xml:lang
      */
     public static final void sendMessage(Message message) {
-        Log.d(Constants.LOG_TAG, "Send message");
+        Log.d(Constants.LOG_TAG, "> Send message");
 
         String msgStr = "";
         String id = "xyz123";
@@ -41,7 +128,7 @@ final public class XMPP {
 		if(message.getTo() != null) {
 			msgStr = "<message from='" + message.getFrom() + "' to='" + message.getTo() + "' id='" + id + "' type='chat' xml:lang='de'>";
 		} else {
-			Log.d(Constants.LOG_TAG, "No receiver detected.");
+			Log.d(Constants.LOG_TAG, ">> No receiver detected.");
 			return;
 		}
 
@@ -56,10 +143,9 @@ final public class XMPP {
 		}
 		msgStr = msgStr + "</message>";
 
-		Log.d(Constants.LOG_TAG, "Send message");
 		Log.d(Constants.LOG_TAG, "" +  msgStr);
 
-		MainActivity.instance.net.writeStream(msgStr);
+		MainActivity.instance.notificationService.writeStream(msgStr);
     }
 
     /**
@@ -67,10 +153,10 @@ final public class XMPP {
      * @todo id generation
      */
     public static final void requestRoster() {
-        Log.d(Constants.LOG_TAG, "Roster request");
+        Log.d(Constants.LOG_TAG, "> Roster request");
 
         String id = "xyz123";
-        MainActivity.instance.net.writeStream("<iq from='" + MainActivity.instance.session.getFullJid() + "' type='get' id='" + id + "'><query xmlns='jabber:iq:roster'/></iq>");
+        MainActivity.instance.notificationService.writeStream("<iq from='" + MainActivity.instance.session.getFullJid() + "' type='get' id='" + id + "'><query xmlns='jabber:iq:roster'/></iq>");
     }
 
     /**
@@ -78,7 +164,7 @@ final public class XMPP {
      * @todo id generation
      */
     public static final void setRoster(Contact contact) {
-        Log.d(Constants.LOG_TAG, "Set roster");
+        Log.d(Constants.LOG_TAG, "> Set roster");
 
         String id = "xyz123";
         if(contact.jid != null) {
@@ -93,10 +179,10 @@ final public class XMPP {
             }
             rosterStr = rosterStr + "</query></iq>";
 
-            Log.d(Constants.LOG_TAG, "Add roster item");
-            MainActivity.instance.net.writeStream(rosterStr);
+            Log.d(Constants.LOG_TAG, ">> Add roster item");
+            MainActivity.instance.notificationService.writeStream(rosterStr);
         } else {
-            Log.d(Constants.LOG_TAG, "Jid is empty. No Rostewr set.");
+            Log.d(Constants.LOG_TAG, ">> Jid is empty. No Rostewr set.");
         }
     }
 
@@ -104,9 +190,9 @@ final public class XMPP {
 	 * @brief Close stream
 	 */
     public static final void closeStream() {
-        Log.d(Constants.LOG_TAG, "Close stream");
+        Log.d(Constants.LOG_TAG, "> Close stream");
 
-        MainActivity.instance.net.writeStream("</stream:stream>");
+        MainActivity.instance.notificationService.writeStream("</stream:stream>");
     }
 
 }

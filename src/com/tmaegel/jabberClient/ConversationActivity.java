@@ -1,5 +1,7 @@
 package com.tmaegel.jabberClient;
 
+import com.tmaegel.jabberClient.Session;
+
 import android.os.Bundle;
 
 import android.util.Log;
@@ -53,7 +55,7 @@ public class ConversationActivity extends Activity {
 		btnSend.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 				Message msg = new Message();
-				msg.setFrom(MainActivity.instance.net.fullJid);
+				msg.setFrom(MainActivity.instance.session.getFullJid());
 				msg.setBody(textMsg.getText().toString());
 				msg.setLocal(true);
 				convAdapter.addMessage(msg);

@@ -143,7 +143,7 @@ public class Network extends AsyncTask<String, Integer, String> {
 			 * Roster
 			 */
 			case Constants.S_ROSTER_RESPONSE:
-				main.listUpdate(stanza.items);
+				// main.listUpdate(stanza.items);
 				break;
 			case Constants.S_ROSTER_PUSH:
 				/*stanza.items.addAll(main.contacts);
@@ -158,7 +158,7 @@ public class Network extends AsyncTask<String, Integer, String> {
 			 */
 			case Constants.RECV_MESSAGE:
 				// MainActivity.instance.convAct.convAdapter.addMessageToHistory(obj[0], false);
-				MainActivity.instance.pushMessageToHistory();
+				// MainActivity.instance.pushMessageToHistory();
  				break;
 		}
 	}
