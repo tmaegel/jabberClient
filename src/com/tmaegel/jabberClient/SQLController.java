@@ -15,13 +15,13 @@ import java.util.List;
 
 public class SQLController extends SQLiteOpenHelper {
 
-	public SQLiteDatabase db;
+	public static SQLiteDatabase db;
 
 	// Database name
 	private static final String DB_NAME = "db_xmmp";
 
 	// database version
-	private static final int DB_VERSION = 10;
+	private static final int DB_VERSION = 16;
 
 	// Table name
 	private static final String TABLE_NAME = "roster";
@@ -50,8 +50,11 @@ public class SQLController extends SQLiteOpenHelper {
 	@Override
 	public void onCreate(SQLiteDatabase db) {
 		try {
-			db.execSQL("CREATE TABLE " + TABLE_NAME + "(" + ID + " INTEGER PRIMARY KEY, " + JID + " TEXT, " + NAME + " TEXT, " + GROUP + " TEXT);");
-			Log.d("jabberClient", "create " + TABLE_NAME);
+			db.execSQL("CREATE TABLE table_roster (ID INTEGER PRIMARY KEY AUTOINCREMENT, JID TEXT, NAME TEXT, CIRCLE TEXT);");
+			Log.d("jabberClient", "create table_roster");
+			
+			db.execSQL("CREATE TABLE table_message (ID INTEGER PRIMARY KEY AUTOINCREMENT, SENDER TEXT, RECEIVER TEXT, SUBJECT TEXT, BODY TEXT, THREAD TEXT, LOCAL INTEGER);");
+			Log.d("jabberClient", "create table_message");
 		} catch(SQLException e) {
 			Log.e("jabberClient", "create table: " + e);
 			System.exit(1);
@@ -63,22 +66,24 @@ public class SQLController extends SQLiteOpenHelper {
 	 */
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-		db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
+		db.execSQL("DROP TABLE IF EXISTS table_roster");
+		Log.d("jabberClient", "drop table_roster");
+		db.execSQL("DROP TABLE IF EXISTS table_message");
+		Log.d("jabberClient", "drop table_message");
 		onCreate(db);
-		Log.d("jabberClient", "drop " + TABLE_NAME);
 	}
 
 	/**
 	 * @brief add new record
 	 */
-	public void insert(String jid, String name, String group) {
+	/*public void insert(String jid, String name, String group) {
 		Log.d("jabberClient", "inserting ...");
 		try {
 			db = this.getWritableDatabase();
 
 			ContentValues values = new ContentValues();
 			/** @todo id != jid */
-			values.put(JID, jid);
+	/*		values.put(JID, jid);
 			values.put(NAME, name);
 			values.put(GROUP, group);
 			db.insert(TABLE_NAME, null, values);
@@ -87,12 +92,54 @@ public class SQLController extends SQLiteOpenHelper {
 		} catch (Exception e) {
 			Log.e("jabberClient", "" + e);
 		}
+	}*/
+
+	public void insertMessage(Message msg) {
+		Log.d("jabberClient", "inserting ...");
+		try {
+			db = this.getWritableDatabase();
+			String sqlExec = "INSERT INTO table_message VALUES (" 
+				+  null + ",'" 
+				+ msg.getFrom() + "','" 
+				+ msg.getTo() + "','" 
+				+ msg.getSubject() + "','" 
+				+ msg.getBody() +"','" 
+				+ msg.getThread() + "',"
+				+ ((msg.isLocal()) ? 1 : 0) + ")";
+				
+			Log.d("jabberClient", "execSQL: " + sqlExec);
+			db.execSQL(sqlExec);
+			db.close();
+		} catch (Exception e) {
+			Log.e("jabberClient", "Error: execSQL:INSERT" + e.toString());
+		}
+	}
+	
+	public List<Message> fetchMessages() {
+		List<Message> messages = new ArrayList<Message>();
+		try {
+			
+			db = this.getReadableDatabase();
+			Cursor c = db.rawQuery("SELECT SENDER, RECEIVER, SUBJECT, BODY, THREAD, LOCAL FROM table_message", null);
+			if(c.moveToFirst()){
+				do {
+					messages.add(new Message(c.getString(0), c.getString(1), c.getString(2), c.getString(3), c.getString(4), (c.getInt(5) != 0)));
+				} while(c.moveToNext());
+			}
+			c.close();
+			db.close();
+			
+		} catch (Exception e) {
+			Log.e("jabberClient", "Error: rawQuery:SELECT" + e.toString());
+		}
+		
+		return messages;
 	}
 
 	/**
 	 * @brie fetching all records
 	 */
-	public List<Contact> fetch() {
+	/*public List<Contact> fetch() {
 		Log.d("jabberClient", "fetching ...");
 		List<Contact> contactList = new ArrayList();
 		try {
@@ -125,12 +172,12 @@ public class SQLController extends SQLiteOpenHelper {
 		}
 
 		return contactList;
-	}
+	}*/
 
 	/**
 	 * @brief modify record by id
 	 */
-	public int updateById(long id, String jid, String name, String group) {
+	/*public int updateById(long id, String jid, String name, String group) {
 		Log.d("jabberClient", "modifying by id ...");
 		db = this.getWritableDatabase();
 
@@ -142,7 +189,7 @@ public class SQLController extends SQLiteOpenHelper {
 		db.close();
 
 		return i;
-	}
+	}*/
 
 	/**
 	 * @brief modify record by object
@@ -164,18 +211,18 @@ public class SQLController extends SQLiteOpenHelper {
 	/**
 	 * @brief delete record
 	 */
-	public void delete(long id) {
+	/*public void delete(long id) {
 		db = this.getWritableDatabase();
 		db.delete(TABLE_NAME, ID + "=" + id, null);
 		db.close();
-	}
+	}*/
 
 	/**
 	 * @brief delete all records
 	 */
-	public void deleteAll() {
+	/*public void deleteAll() {
 		/*db = this.getWritableDatabase();
 		db.delete(TABLE_NAME, ID + "=" + id, null);
 		db.close();*/
-	}
+	//}
 }

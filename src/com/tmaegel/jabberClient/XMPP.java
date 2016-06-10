@@ -122,6 +122,7 @@ final public class XMPP {
     public static final void sendMessage(Message message) {
         Log.d(Constants.LOG_TAG, "> Send message");
 
+		boolean receipt = false;
         String msgStr = "";
         String id = "xyz123";
 
@@ -140,6 +141,9 @@ final public class XMPP {
 		}
 		if(message.getThread() != null) {
 			msgStr = msgStr + "<thread>" + message.getThread() + "</thread>";
+		}
+		if(receipt) {
+			msgStr = msgStr + "<request xmlns='urn:xmpp:receipts'/>";
 		}
 		msgStr = msgStr + "</message>";
 

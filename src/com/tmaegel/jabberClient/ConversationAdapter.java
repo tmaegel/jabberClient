@@ -37,6 +37,14 @@ public class ConversationAdapter extends ArrayAdapter {
 		this.context = context;
 		this.resourceId = resourceId;
 		this.jid = jid;
+				
+		history.clear();
+		List<Message> tmp = MainActivity.instance.dbCon.fetchMessages();
+		for(int i = 0; i < tmp.size(); i++) {
+			history.add(tmp.get(i));
+			super.add(tmp.get(i));
+		}
+		
 	}
 
 	public View getView(int position, View convertView, ViewGroup parent) {
@@ -71,6 +79,8 @@ public class ConversationAdapter extends ArrayAdapter {
 			history.add(msg);
 			super.add(msg);
 		}
+		
+		MainActivity.instance.dbCon.insertMessage(msg);
 	}
 
 	/** return message object */

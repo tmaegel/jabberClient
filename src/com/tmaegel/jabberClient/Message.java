@@ -22,6 +22,16 @@ public class Message implements Serializable {
 	public Message() {
 
 	}
+	
+	public Message(String from, String to, String subject, String body, String thread, boolean local) {
+		this.from = from;
+		this.to = to;
+		this.subject = subject;
+		this.body = body;
+		this.thread = thread;
+		
+		this.local = local;
+	}
 
 	@Override
     public String toString() {

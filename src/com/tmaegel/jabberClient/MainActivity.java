@@ -48,7 +48,7 @@ public class MainActivity extends Activity {
 	public ConversationActivity convAct;
 	// public Network net;
 	public Session session;
-	// public SQLController dbCon;
+	public SQLController dbCon;
 
 	// intents
 	public Intent convInt;
@@ -75,11 +75,18 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.main);
 
 		instance = this;
-
+		
+		// Session
 		session = new Session("user1", "localhost", "my-resource", "123456");
+		
+		// Service
+		LocalBroadcastManager.getInstance(this).registerReceiver(serviceReceiver, new IntentFilter("service-broadcast"));
+		Intent intent = new Intent(this, NotificationService.class);
+		bindService(intent, myConnection, Context.BIND_AUTO_CREATE);
+		startService(intent);
 
 		// database
-		// dbCon = new SQLController(main);
+		dbCon = new SQLController(this);
 		// dbCon.insert("user1@localhost", "TEST1", "GROUP A");
 		// dbCon.insert("user2@localhost", "TEST2", "GROUP B")
 		// contacts = dbCon.fetch();
@@ -139,16 +146,12 @@ public class MainActivity extends Activity {
 			Message message = (Message)intent.getSerializableExtra("message");
 			if(message != null) {
 				Log.d(Constants.LOG_TAG, "> Push message to history");
-				Log.d(Constants.LOG_TAG, "" +  message);
-				//intent.putExtra("message", net.message);
-				//LocalBroadcastManager.getInstance(MainActivity.instance).sendBroadcast(intent);
 				pushMessageToHistory(message);
 				return;
 			}
 
 			Contact contact = (Contact)intent.getSerializableExtra("roster");
 			if(contact != null) {
-
 				Log.d(Constants.LOG_TAG, "> Push contact to list");
 				contacts.add((Contact)intent.getSerializableExtra("roster"));
 				listAdapter.notifyDataSetChanged();
@@ -228,11 +231,11 @@ public class MainActivity extends Activity {
 		super.onResume();
 		instance = this;
 
-		LocalBroadcastManager.getInstance(this).registerReceiver(serviceReceiver, new IntentFilter("service-broadcast"));
+		/* LocalBroadcastManager.getInstance(this).registerReceiver(serviceReceiver, new IntentFilter("service-broadcast"));
 
 		Intent intent = new Intent(this, NotificationService.class);
 		bindService(intent, myConnection, Context.BIND_AUTO_CREATE);
-		startService(intent);
+		startService(intent);*/
 	}
 
 	@Override
@@ -240,11 +243,11 @@ public class MainActivity extends Activity {
 		super.onPause();
 		// instance = null;
 
-		LocalBroadcastManager.getInstance(this).unregisterReceiver(serviceReceiver);
+		/* LocalBroadcastManager.getInstance(this).unregisterReceiver(serviceReceiver);
 
 		if (isBound) {
             unbindService(myConnection);
             isBound = false;
-        }
+        } */
 	}
 }

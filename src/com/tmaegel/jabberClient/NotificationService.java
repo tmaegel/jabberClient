@@ -50,15 +50,9 @@ public class NotificationService extends Service  {
 	private String serverIpAddr = "192.168.178.103";	// alternativ "www.maegel-online.de" or "37.187.216.212"
 	private int serverPort = 5222; 						// only for client to server communication, 5269 for server to server communication
 
-	private String uft8null = "\\x00"; 			// use for PLAIN authentifaction
-
 	// Account information
     public String fullJid;
     private String jid;
-	private String user = "user1";
-    private String host = "localhost";
-	private String password = "123456";
-	private String resource = "my-resource";
 
     private boolean connected = false;
 	private boolean initialized = false;
@@ -103,11 +97,17 @@ public class NotificationService extends Service  {
                             Thread.sleep(1000);
                         }
 
-                        initialized = XMPP.initialize(user, host, password, resource);
+						initialized = XMPP.initialize(
+							MainActivity.instance.session.user, 
+							MainActivity.instance.session.domain, 
+							MainActivity.instance.session.password, 
+							MainActivity.instance.session.resource
+						);
+
 
         				while(connected && initialized) {
         					// Receive response in the loop
-        					// Log.d(Constants.LOG_TAG, "> Receiver loop");
+        					
         					recvResponse();
 
                             // Thread.sleep(5000);
@@ -239,21 +239,6 @@ public class NotificationService extends Service  {
 				Log.d(Constants.LOG_TAG, "No stanza object received");
 			}
 		}
-	}
-
-    /**
-	 * @brief send request
-	 * @todo: problems with to many messages
-	 */
-	public void sendRequest(int type) {
-		/**< initial roster request **/
-		// <iq from='juliet@example.com/balcony' type='get' id='roster_1'><query xmlns='jabber:iq:roster'/></iq>
-		/**< add a roster item **/
-		// <iq from='juliet@example.com/balcony' type='set' id='roster_2'><query xmlns='jabber:iq:roster'><item jid='nurse@example.com' name='Nurse'><group>Servants</group></item></query></iq>
-		/**< update a roster item */
-		// <iq from='juliet@example.com/chamber' type='set' id='roster_3'><query xmlns='jabber:iq:roster'><item jid='romeo@example.net' name='Romeo' subscription='both'><group>Friends</group><group>Lovers</group></item></query></iq>
-		/**< delete a roster item */
-		// <iq from='juliet@example.com/balcony' type='set' id='roster_4'><query xmlns='jabber:iq:roster'><item jid='nurse@example.com' subscription='remove'/></query></iq>
 	}
 
 	/**
