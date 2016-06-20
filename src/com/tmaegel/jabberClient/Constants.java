@@ -60,5 +60,13 @@ final public class Constants {
 	// public static final int C_SEND_MESSAGE			= 30;
 	/**< Server side */
 	public static final int RECV_MESSAGE			= 31;
+	
+	/**
+	 * REQUEST CODE OF CHILD ACTIVITIES
+	 */
+	static final int ADD_ROSTER_ITEM 		= 1;	/**< Add roster item */
+	static final int DEL_ROSTER_ITEM 		= 2;	/**< Delete roster item */
+	static final int UPD_ROSTER_ITEM 		= 3;	/**< Update roster item */
+	static final int START_CONVERSATION		= 4;
 
 }

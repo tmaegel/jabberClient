@@ -14,6 +14,8 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.ContextMenu;  
+import android.view.ContextMenu.ContextMenuInfo;  
 
 import android.app.ActionBar.Tab;
 import android.app.Activity;
@@ -43,10 +45,6 @@ public class MainActivity extends Activity {
 	public static MainActivity instance = null;
 
 	public NotificationService notificationService;
-
-	// public references
-	public ConversationActivity convAct;
-	// public Network net;
 	public Session session;
 	public SQLController dbCon;
 
@@ -59,14 +57,6 @@ public class MainActivity extends Activity {
 	public ArrayList<Contact> contacts;
 
 	boolean isBound = false;
-
-	/**
-	 * REQUEST CODE OF CHILD ACTIVITIES
-	 */
-	static final int ADD_ROSTER_ITEM 		= 1;	/**< Add roster item */
-	static final int DEL_ROSTER_ITEM 		= 2;	/**< Delete roster item */
-	static final int UPD_ROSTER_ITEM 		= 3;	/**< Update roster item */
-	static final int START_CONVERSATION 	= 4;	/**< Update roster item */
 
 	/** Called when the activity is first created. */
 	@Override
@@ -85,17 +75,15 @@ public class MainActivity extends Activity {
 		bindService(intent, myConnection, Context.BIND_AUTO_CREATE);
 		startService(intent);
 
-		// database
-		dbCon = new SQLController(this);
-		// dbCon.insert("user1@localhost", "TEST1", "GROUP A");
-		// dbCon.insert("user2@localhost", "TEST2", "GROUP B")
-		// contacts = dbCon.fetch();
+		// Database
+		dbCon = new SQLController(this, true);
 
 		setStatInt = new Intent(this, SetStatusActivity.class);
 		prefInt = new Intent(this, PreferencesActivity.class);
 
 		// Contact list
 		contacts = new ArrayList<Contact>();
+		contacts.addAll(dbCon.fetchContacts());
         ListView list = (ListView)findViewById(R.id.list);
 		listAdapter = new ListAdapter(this, contacts);
         list.setAdapter(listAdapter);
@@ -105,9 +93,10 @@ public class MainActivity extends Activity {
 				String jid = contacts.get(position).getJid();
 				convInt = new Intent(view.getContext(), ConversationActivity.class);
 				convInt.putExtra("jid", jid);
-				startActivityForResult(convInt, START_CONVERSATION);
+				startActivityForResult(convInt, Constants.START_CONVERSATION);
 			}
 		});
+		registerForContextMenu(list);
 
 		// Network
 		/*ConnectivityManager connMgr = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -149,15 +138,11 @@ public class MainActivity extends Activity {
 				pushMessageToHistory(message);
 				return;
 			}
-
-			Contact contact = (Contact)intent.getSerializableExtra("roster");
-			if(contact != null) {
-				Log.d(Constants.LOG_TAG, "> Push contact to list");
-				contacts.add((Contact)intent.getSerializableExtra("roster"));
-				listAdapter.notifyDataSetChanged();
-				return;
+			
+			if(intent.getIntExtra("update-contact", -1) != -1) {
+				Log.d(Constants.LOG_TAG, "> Update contact list");
+				refreshContactList();
 			}
-
 
 		}
 	};
@@ -170,6 +155,30 @@ public class MainActivity extends Activity {
 
 		return true;
 	}
+	
+	@Override   
+	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {  
+		super.onCreateContextMenu(menu, v, menuInfo);  
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.contextmenu, menu);
+	}
+	
+	@Override    
+	public boolean onContextItemSelected(MenuItem item) {    
+		switch (item.getItemId()) {
+			/** Edit contact */
+			case R.id.context_edit:
+				Log.d(Constants.LOG_TAG, "> Edit roster item");
+				return true;
+			/** Delete contact */
+			case R.id.context_delete:
+				Log.d(Constants.LOG_TAG, "> Delete roster item");
+				return true;
+			/** Default */
+			default:
+				return super.onOptionsItemSelected(item);
+		} 
+	}
 
 	/** Listening to click on menu items */
 	@Override
@@ -178,7 +187,7 @@ public class MainActivity extends Activity {
 			/** Add contact */
 			case R.id.opt_add_contact:
 				Intent addContInt = new Intent(this, AddContactActivity.class);
-				startActivityForResult(addContInt, ADD_ROSTER_ITEM);
+				startActivityForResult(addContInt, Constants.ADD_ROSTER_ITEM);
 				return true;
 			/** Add conference */
 			/*case R.id.opt_add_conference:
@@ -213,14 +222,33 @@ public class MainActivity extends Activity {
 		LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 	}
 
+	public void refreshContactList() {
+		contacts.clear();
+		contacts.addAll(dbCon.fetchContacts());
+		listAdapter.notifyDataSetChanged();
+	}
+
 	/**
 	 * Get results of child activities
 	 */
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		switch(requestCode) {
-			case ADD_ROSTER_ITEM:
+			case Constants.ADD_ROSTER_ITEM:
 				if (resultCode == RESULT_OK) {
-					XMPP.setRoster(new Contact(data.getStringExtra("jid"), data.getStringExtra("name"), data.getStringExtra("group")));
+					Contact contact = new Contact(data.getStringExtra("jid"), data.getStringExtra("name"), data.getStringExtra("group"));
+					XMPP.setRoster(contact);
+					MainActivity.instance.dbCon.insertContact(contact);
+					refreshContactList();
+				}
+				break;
+			case Constants.DEL_ROSTER_ITEM:
+				if (resultCode == RESULT_OK) {
+					
+				}
+				break;
+			case Constants.UPD_ROSTER_ITEM:
+				if (resultCode == RESULT_OK) {
+					
 				}
 				break;
 		}

@@ -153,10 +153,11 @@ public class NotificationService extends Service  {
 			 */
 			case Constants.S_ROSTER_RESPONSE:
                 for(int i = 0; i < stanza.items.size(); i++) {
-                    Intent rosterIntent = new Intent("service-broadcast");
-            		rosterIntent.putExtra("roster", stanza.items.get(i));
-            		LocalBroadcastManager.getInstance(this).sendBroadcast(rosterIntent);
+                	MainActivity.instance.dbCon.insertContact(stanza.items.get(i));
                 }
+                Intent rosterIntent = new Intent("service-broadcast");
+            	rosterIntent.putExtra("update-contact", 1);
+            	LocalBroadcastManager.getInstance(this).sendBroadcast(rosterIntent);
 				break;
 			case Constants.S_ROSTER_PUSH:
 				/*stanza.items.addAll(main.contacts);

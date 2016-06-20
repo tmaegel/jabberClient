@@ -2,7 +2,6 @@ package com.tmaegel.jabberClient;
 
 import android.util.Log;
 
-import android.content.ContentValues;
 import android.database.Cursor;
 
 import android.content.Context;
@@ -23,18 +22,11 @@ public class SQLController extends SQLiteOpenHelper {
 	// database version
 	private static final int DB_VERSION = 16;
 
-	// Table name
-	private static final String TABLE_NAME = "roster";
-
-	// Table columns
-	//  @todo: as array
-	public static final String ID = "id";
-	public static final String JID = "jid";
-	public static final String NAME = "name";
-	public static final String GROUP = "circle";
-
-	public SQLController(Context context) {
+	private boolean resetOnStart = true;
+	
+	public SQLController(Context context, boolean resetOnStart) {
 		super(context, DB_NAME, null, DB_VERSION);
+		this.resetOnStart = resetOnStart;
 
 		/*try {
 			database = getWritableDatabase();
@@ -42,6 +34,12 @@ public class SQLController extends SQLiteOpenHelper {
 			Log.e("jabberClient", "" + e);
 		}*/
 		//  open();
+		
+		if(resetOnStart) {
+			reset();
+			db = this.getWritableDatabase();
+			onCreate(db);
+		}
 	}
 
 	/**
@@ -74,38 +72,93 @@ public class SQLController extends SQLiteOpenHelper {
 	}
 
 	/**
-	 * @brief add new record
+	 * CONTACT
 	 */
-	/*public void insert(String jid, String name, String group) {
-		Log.d("jabberClient", "inserting ...");
+
+	public void insertContact(Contact contact) {
+		Log.d("jabberClient", "Insert contact");
 		try {
 			db = this.getWritableDatabase();
-
-			ContentValues values = new ContentValues();
-			/** @todo id != jid */
-	/*		values.put(JID, jid);
-			values.put(NAME, name);
-			values.put(GROUP, group);
-			db.insert(TABLE_NAME, null, values);
-
+			String sqlExec = "INSERT INTO table_roster VALUES (" 
+				+  null + ",'" 
+				+ contact.getJid() + "','" 
+				+ (contact.getName() == null ? "" : contact.getName()) + "','" 
+				+ (contact.getGroup() == null ? "" : contact.getGroup()) + "')";
+				
+			Log.d("jabberClient", "execSQL: " + sqlExec);
+			db.execSQL(sqlExec);
 			db.close();
 		} catch (Exception e) {
-			Log.e("jabberClient", "" + e);
+			Log.e("jabberClient", "Error: execSQL:INSERT" + e.toString());
 		}
-	}*/
+	}
+	
+	public void updateContact(Contact contact) {
+		Log.d("jabberClient", "Update contact");
+		try {
+			db = this.getWritableDatabase();
+			String sqlExec = "UPDATE ...";
+				
+			Log.d("jabberClient", "execSQL: " + sqlExec);
+			db.execSQL(sqlExec);
+			db.close();
+		} catch (Exception e) {
+			Log.e("jabberClient", "Error: execSQL:UPDATE" + e.toString());
+		}
+	}
+	
+	public void removeContact(Contact contact) {
+		Log.d("jabberClient", "Remove contact");
+		try {
+			db = this.getWritableDatabase();
+			String sqlExec = "DROP ...";
+				
+			Log.d("jabberClient", "execSQL: " + sqlExec);
+			db.execSQL(sqlExec);
+			db.close();
+		} catch (Exception e) {
+			Log.e("jabberClient", "Error: execSQL:DROP" + e.toString());
+		}
+	}
+	
+	public List<Contact> fetchContacts() {
+		Log.d("jabberClient", "Fetch contacts");
+		List<Contact> contacts = new ArrayList<Contact>();
+		try {
+			
+			db = this.getReadableDatabase();
+			Cursor c = db.rawQuery("SELECT JID, NAME, CIRCLE FROM table_roster", null);
+			if(c.moveToFirst()){
+				do {
+					contacts.add(new Contact(c.getString(0), c.getString(1), c.getString(2)));
+				} while(c.moveToNext());
+			}
+			c.close();
+			db.close();
+			
+		} catch (Exception e) {
+			Log.e("jabberClient", "Error: rawQuery:SELECT" + e.toString());
+		}
+		
+		return contacts;
+	}
 
-	public void insertMessage(Message msg) {
-		Log.d("jabberClient", "inserting ...");
+	/**
+	 *  MESSAGE
+	 */
+
+	public void insertMessage(Message message) {
+		Log.d("jabberClient", "Insert message");
 		try {
 			db = this.getWritableDatabase();
 			String sqlExec = "INSERT INTO table_message VALUES (" 
 				+  null + ",'" 
-				+ msg.getFrom() + "','" 
-				+ msg.getTo() + "','" 
-				+ msg.getSubject() + "','" 
-				+ msg.getBody() +"','" 
-				+ msg.getThread() + "',"
-				+ ((msg.isLocal()) ? 1 : 0) + ")";
+				+ message.getFrom() + "','" 
+				+ message.getTo() + "','" 
+				+ message.getSubject() + "','" 
+				+ message.getBody() +"','" 
+				+ message.getThread() + "',"
+				+ ((message.isLocal()) ? 1 : 0) + ")";
 				
 			Log.d("jabberClient", "execSQL: " + sqlExec);
 			db.execSQL(sqlExec);
@@ -116,6 +169,7 @@ public class SQLController extends SQLiteOpenHelper {
 	}
 	
 	public List<Message> fetchMessages() {
+		Log.d("jabberClient", "Fetch messages");
 		List<Message> messages = new ArrayList<Message>();
 		try {
 			
@@ -137,76 +191,24 @@ public class SQLController extends SQLiteOpenHelper {
 	}
 
 	/**
-	 * @brie fetching all records
+	 * DATABASE
 	 */
-	/*public List<Contact> fetch() {
-		Log.d("jabberClient", "fetching ...");
-		List<Contact> contactList = new ArrayList();
+	public void reset() {
+		Log.d("jabberClient", "Reset database");
 		try {
-			db = this.getReadableDatabase();
-			String query = "SELECT * FROM " + TABLE_NAME;
-			Cursor cursor = db.rawQuery(query, null);
-
-			// looping through all rows and adding to list
-			if(cursor.moveToFirst()) {
-				do {
-					Contact contact = new Contact();
-					contact.jid = cursor.getString(0);
-					contact.name = cursor.getString(1);
-					contact.group = cursor.getString(2);
-					// contact.setJID(cursor.getString(0));
-					// contact.setName(cursor.getString(1));
-					// contact.setGroup(cursor.getString(2));
-					// Adding contact to list
-					contactList.add(contact);
-
-					// Log.d("jabberClient", "JID: " + contact.getJID() + " NAME: " + contact.getName() + " GROUP: " + contact.getGroup());
-				} while (cursor.moveToNext());
-			}
-
-			// return contact list
-			cursor.close();
+			db = this.getWritableDatabase();
+			String sqlExec = "";
+			sqlExec = "DROP TABLE IF EXISTS table_roster";	
+			Log.d("jabberClient", "execSQL: " + sqlExec);
+			db.execSQL(sqlExec);
+			sqlExec = "DROP TABLE IF EXISTS table_message";	
+			Log.d("jabberClient", "execSQL: " + sqlExec);
+			db.execSQL(sqlExec);
 			db.close();
 		} catch (Exception e) {
-			Log.e("jabberClient", "" + e);
+			Log.e("jabberClient", "Error: execSQL:DROP" + e.toString());
 		}
-
-		return contactList;
-	}*/
-
-	/**
-	 * @brief modify record by id
-	 */
-	/*public int updateById(long id, String jid, String name, String group) {
-		Log.d("jabberClient", "modifying by id ...");
-		db = this.getWritableDatabase();
-
-		ContentValues values = new ContentValues();
-		values.put(JID, jid);
-		values.put(NAME, name);
-		values.put(GROUP, group);
-		int i = db.update(TABLE_NAME, values, ID + " = " + id, null);
-		db.close();
-
-		return i;
-	}*/
-
-	/**
-	 * @brief modify record by object
-	 */
-	/*public int updateByObject(long id, String jid, String name, String group) {
-		Log.d("jabberClient", "modifying by object ...");
-		db = this.getWritableDatabase();
-
-		ContentValues values = new ContentValues();
-		values.put(KEY_NAME, contact.getName());
-		values.put(KEY_PH_NO, contact.getPhoneNumber());
-		values.put(KEY_EMAIL, contact.getEmail());
-
-		// updating row
-		db.close();
-		return db.update(TABLE_CONTACTS, values, KEY_ID + " = ?", new String[] { String.valueOf(contact.getID()) });
-	}*/
+	}
 
 	/**
 	 * @brief delete record

@@ -80,7 +80,7 @@ public class ConversationAdapter extends ArrayAdapter {
 			super.add(msg);
 		}
 		
-		MainActivity.instance.dbCon.insertMessage(msg);
+		// MainActivity.instance.dbCon.insertMessage(msg);
 	}
 
 	/** return message object */

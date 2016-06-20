@@ -25,6 +25,10 @@
 	<!-- Option menu -->
 	<string name="opt_success">Success</string>
 
+	<!-- Context menu -->
+	<string name="context_edit">Edit</string>
+	<string name="context_delete">Delete</string>
+
 	<!-- Conversation activity -->
 	<string name="conv_history">History</string>
 	<string name="conv_message">Message</string>
