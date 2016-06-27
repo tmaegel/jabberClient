@@ -143,6 +143,7 @@ public class NotificationService extends Service  {
 			 * Message
 			 */
 			case Constants.RECV_MESSAGE:
+				MainActivity.instance.dbCon.insertMessage(message);
                 Intent msgIntent = new Intent("service-broadcast");
                 msgIntent.putExtra("message", message);
                 LocalBroadcastManager.getInstance(this).sendBroadcast(msgIntent);

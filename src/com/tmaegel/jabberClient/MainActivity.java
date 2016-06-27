@@ -34,6 +34,7 @@ import android.widget.ListView;
 import android.widget.ArrayAdapter;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 
 import android.net.NetworkInfo;
 import android.net.ConnectivityManager;
@@ -76,7 +77,7 @@ public class MainActivity extends Activity {
 		startService(intent);
 
 		// Database
-		dbCon = new SQLController(this, true);
+		dbCon = new SQLController(this);
 
 		setStatInt = new Intent(this, SetStatusActivity.class);
 		prefInt = new Intent(this, PreferencesActivity.class);
@@ -142,6 +143,7 @@ public class MainActivity extends Activity {
 			if(intent.getIntExtra("update-contact", -1) != -1) {
 				Log.d(Constants.LOG_TAG, "> Update contact list");
 				refreshContactList();
+				return;
 			}
 
 		}
@@ -172,7 +174,13 @@ public class MainActivity extends Activity {
 				return true;
 			/** Delete contact */
 			case R.id.context_delete:
-				Log.d(Constants.LOG_TAG, "> Delete roster item");
+				AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
+				int id = contacts.get(info.position).id;
+				Log.d(Constants.LOG_TAG, "> Remove roster item with id " + id);
+				XMPP.delRoster(dbCon.selectContact(id));
+				dbCon.removeContact(id);
+				contacts.remove(contacts.get(info.position).id);
+				refreshContactList();
 				return true;
 			/** Default */
 			default:

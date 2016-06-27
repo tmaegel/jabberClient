@@ -13,7 +13,7 @@ final public class XMPP {
      * @param resource resource
      */
     public static final boolean initialize(String user, String host, String password, String resource) {
-        Log.d(Constants.LOG_TAG, "> Initialization ...");
+        Log.d(Constants.LOG_TAG, "> XMPP: Initialization ...");
 
         String jid = user + "@" + host;
 
@@ -37,7 +37,7 @@ final public class XMPP {
         XMPP.requestRoster();
         MainActivity.instance.notificationService.recvResponse();
 
-        Log.d(Constants.LOG_TAG, "> Initialization success");
+        Log.d(Constants.LOG_TAG, "> XMPP: Initialization success");
 
         return true;
     }
@@ -48,7 +48,7 @@ final public class XMPP {
      * @param to host
      */
     public static final void openStream(String from, String to, boolean reopen) {
-        Log.d(Constants.LOG_TAG, "> Open stream");
+        Log.d(Constants.LOG_TAG, "> XMPP: Open stream");
 
         if(to.isEmpty() || to == null) {
             Log.d(Constants.LOG_TAG, ">> No host");
@@ -80,7 +80,7 @@ final public class XMPP {
      * @param password passwod
      */
     public static final void authenticate(String user, String password) {
-        Log.d(Constants.LOG_TAG, "> Authentifaction");
+        Log.d(Constants.LOG_TAG, "> XMPP: Authentifaction");
 
         try {
             String authStr = "\0" + user + "\0" + password;
@@ -97,7 +97,7 @@ final public class XMPP {
      * @todo return value resource or error status
      */
     public static final void bindResource(String resource) {
-        Log.d(Constants.LOG_TAG, "> Bind resource");
+        Log.d(Constants.LOG_TAG, "> XMPP: Bind resource");
 
 
         String id = "xyz123";
@@ -120,7 +120,7 @@ final public class XMPP {
      * @todo xml:lang
      */
     public static final void sendMessage(Message message) {
-        Log.d(Constants.LOG_TAG, "> Send message");
+        Log.d(Constants.LOG_TAG, "> XMPP: Send message");
 
 		boolean receipt = false;
         String msgStr = "";
@@ -157,7 +157,7 @@ final public class XMPP {
      * @todo id generation
      */
     public static final void requestRoster() {
-        Log.d(Constants.LOG_TAG, "> Roster request");
+        Log.d(Constants.LOG_TAG, "> XMPP: Roster request");
 
         String id = "xyz123";
         MainActivity.instance.notificationService.writeStream("<iq from='" + MainActivity.instance.session.getFullJid() + "' type='get' id='" + id + "'><query xmlns='jabber:iq:roster'/></iq>");
@@ -168,33 +168,59 @@ final public class XMPP {
      * @todo id generation
      */
     public static final void setRoster(Contact contact) {
-        Log.d(Constants.LOG_TAG, "> Set roster");
+        Log.d(Constants.LOG_TAG, "> XMPP: Set roster");
 
-        String id = "xyz123";
-        if(contact.jid != null) {
-            String rosterStr = "<iq from='" + MainActivity.instance.session.getFullJid() + "' type='set' id='" + id + "'><query xmlns='jabber:iq:roster'><item jid='" + contact.jid + "'";
-            if(contact.name != null) {
-                rosterStr = rosterStr + " name='" + contact.name + "'";
-            }
-            if(contact.group == null) {
-                rosterStr = rosterStr + "/>";
-            } else {
-                rosterStr = rosterStr + "><group>" + contact.group + "</group></item>";
-            }
-            rosterStr = rosterStr + "</query></iq>";
+		if(contact != null) {
+		    String id = "xyz123";
+		    if(contact.jid != null) {
+		        String rosterStr = "<iq from='" + MainActivity.instance.session.getFullJid() + "' type='set' id='" + id + "'><query xmlns='jabber:iq:roster'><item jid='" + contact.jid + "'";
+		        if(contact.name != null) {
+		            rosterStr = rosterStr + " name='" + contact.name + "'";
+		        }
+		        if(contact.group == null) {
+		            rosterStr = rosterStr + "/>";
+		        } else {
+		            rosterStr = rosterStr + "><group>" + contact.group + "</group></item>";
+		        }
+		        rosterStr = rosterStr + "</query></iq>";
 
-            Log.d(Constants.LOG_TAG, ">> Add roster item");
-            MainActivity.instance.notificationService.writeStream(rosterStr);
-        } else {
-            Log.d(Constants.LOG_TAG, ">> Jid is empty. No Rostewr set.");
-        }
+		        Log.d(Constants.LOG_TAG, ">> Add roster item");
+		        MainActivity.instance.notificationService.writeStream(rosterStr);
+		    } else {
+		        Log.d(Constants.LOG_TAG, ">> Jid is empty. No Roster set.");
+		    }
+		} else {
+			Log.d(Constants.LOG_TAG, ">> No roster item found.");
+		}
+    }
+    
+    /**
+     * @brief Remove roster
+     * @todo id generation
+     */
+    public static final void delRoster(Contact contact) {
+        Log.d(Constants.LOG_TAG, "> XMPP: Remove roster");
+
+		if(contact != null) {
+		    String id = "xyz123";
+		    if(contact.jid != null) {
+		        String rosterStr = "<iq from='" + MainActivity.instance.session.getFullJid() + "' type='set' id='" + id + "'><query xmlns='jabber:iq:roster'><item jid='" + contact.jid + "' subscription='remove'/></query></iq>";
+
+		        Log.d(Constants.LOG_TAG, ">> Remove roster item");
+		        MainActivity.instance.notificationService.writeStream(rosterStr);
+		    } else {
+		        Log.d(Constants.LOG_TAG, ">> Jid is empty. No Roster remove.");
+		    }
+		} else {
+			Log.d(Constants.LOG_TAG, ">> No roster item found.");
+		}
     }
 
     /**
 	 * @brief Close stream
 	 */
     public static final void closeStream() {
-        Log.d(Constants.LOG_TAG, "> Close stream");
+        Log.d(Constants.LOG_TAG, "> XMPP: Close stream");
 
         MainActivity.instance.notificationService.writeStream("</stream:stream>");
     }

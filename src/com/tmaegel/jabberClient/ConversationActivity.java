@@ -59,7 +59,7 @@ public class ConversationActivity extends Activity {
 				msg.setBody(textMsg.getText().toString());
 				msg.setLocal(true);
 				convAdapter.addMessage(msg);
-
+				
 				textMsg.setText("", TextView.BufferType.EDITABLE);
 			}
 		});

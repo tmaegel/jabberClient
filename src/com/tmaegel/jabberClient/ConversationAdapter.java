@@ -39,7 +39,8 @@ public class ConversationAdapter extends ArrayAdapter {
 		this.jid = jid;
 				
 		history.clear();
-		List<Message> tmp = MainActivity.instance.dbCon.fetchMessages();
+		List<Message> tmp = MainActivity.instance.dbCon.fetchMessages(jid);
+		Log.d(Constants.LOG_TAG, "> Found " + tmp.size() + " messages");
 		for(int i = 0; i < tmp.size(); i++) {
 			history.add(tmp.get(i));
 			super.add(tmp.get(i));
@@ -72,9 +73,12 @@ public class ConversationAdapter extends ArrayAdapter {
 			msg.setTo(jid);
 			history.add(msg);
 			super.add(msg);
-			if (MainActivity.instance != null) {
+			
+			if(MainActivity.instance != null) {
 				XMPP.sendMessage(msg);
 			}
+			
+			MainActivity.instance.dbCon.insertMessage(msg);
 		} else {
 			history.add(msg);
 			super.add(msg);

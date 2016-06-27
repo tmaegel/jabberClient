@@ -8,6 +8,8 @@ import java.io.Serializable;
 
 public class Contact implements Serializable {
 
+	public int id;
+
 	public String jid;
 	public String name;
 	public String group;
@@ -33,6 +35,13 @@ public class Contact implements Serializable {
     }
 
 	public Contact(String jid, String name, String group) {
+		setJid(jid);
+		setName(name);
+		setGroup(group);
+	}
+
+	public Contact(int id, String jid, String name, String group) {
+		this.id = id;
 		setJid(jid);
 		setName(name);
 		setGroup(group);
