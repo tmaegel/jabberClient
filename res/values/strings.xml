@@ -39,8 +39,6 @@
 	<string name="pref_user_name">Username</string>
 	<string name="pref_user_name_summary">Username description</string>
 	<string name="pref_password">Password</string>
-	<string name="pref_keep_password">Keep password</string>
-	<string name="pref_keep_password_summary">Keep password description</string>
 	<string name="pref_resource">Resource</string>
 	<string name="pref_resource_summary">Resource description</string>
 	<string name="pref_server">Server</string>

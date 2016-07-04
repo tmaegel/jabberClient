@@ -45,10 +45,7 @@ public class NotificationService extends Service  {
 	// objects
 	public Stanza stanza;
 	public Contact contact;
-	public Message message;
-
-	private String serverIpAddr = "192.168.178.103";	// alternativ "www.maegel-online.de" or "37.187.216.212"
-	private int serverPort = 5222; 						// only for client to server communication, 5269 for server to server communication
+	public Message message;	
 
 	// Account information
     public String fullJid;
@@ -80,8 +77,8 @@ public class NotificationService extends Service  {
                 try {
 
         			// InetAddress serverAddr = InetAddress.getByName(serverIpAddr);
-        			Log.d(Constants.LOG_TAG, "> Open socket to " + serverIpAddr + ":" + serverPort);
-        			socket = new Socket(serverIpAddr, serverPort);
+        			Log.d(Constants.LOG_TAG, "> Open socket to " + MainActivity.instance.session.ip + ":" + MainActivity.instance.session.port);
+        			socket = new Socket(MainActivity.instance.session.ip, MainActivity.instance.session.port);
 
         			input = socket.getInputStream();
         			output = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));

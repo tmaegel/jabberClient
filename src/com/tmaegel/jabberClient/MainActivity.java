@@ -67,17 +67,18 @@ public class MainActivity extends Activity {
 
 		instance = this;
 		
-		// Session
-		session = new Session("user1", "localhost", "my-resource", "123456");
+		// Database
+		dbCon = new SQLController(this);
+		
+		// Session, only for client to server communication, 5269 for server to server communication
+		// session = new Session("user1", "123456", "my-resource", "localhost", "192.168.178.103", 5222);
+		session = dbCon.selectSession();
 		
 		// Service
 		LocalBroadcastManager.getInstance(this).registerReceiver(serviceReceiver, new IntentFilter("service-broadcast"));
 		Intent intent = new Intent(this, NotificationService.class);
 		bindService(intent, myConnection, Context.BIND_AUTO_CREATE);
 		startService(intent);
-
-		// Database
-		dbCon = new SQLController(this);
 
 		setStatInt = new Intent(this, SetStatusActivity.class);
 		prefInt = new Intent(this, PreferencesActivity.class);
@@ -179,7 +180,6 @@ public class MainActivity extends Activity {
 				Log.d(Constants.LOG_TAG, "> Remove roster item with id " + id);
 				XMPP.delRoster(dbCon.selectContact(id));
 				dbCon.removeContact(id);
-				contacts.remove(contacts.get(info.position).id);
 				refreshContactList();
 				return true;
 			/** Default */
