@@ -28,11 +28,13 @@ public class SQLController extends SQLiteOpenHelper {
 	public SQLController(Context context) {
 		super(context, DB_NAME, null, DB_VERSION);
 
-		/* if(DB_RESET) {
-			onCreate(this.getWritableDatabase());
-		} */
+		if(DB_RESET) {
+			reset();
+			init();
+		}
 		
-		insertSession("user1", "123456", "my-resource", "localhost", "192.168.178.103", 5222);
+		// default setting
+		insertSession("user", "123456", "my-resource", "maegel-online.de", "37.187.216.212", 5222);
 
 		/*try {
 			database = getWritableDatabase();
@@ -47,25 +49,7 @@ public class SQLController extends SQLiteOpenHelper {
 	 */
 	@Override
 	public void onCreate(SQLiteDatabase db) {	
-		if(DB_RESET) {
-			reset();
-		}
-	
-		try {
-			Log.d("jabberClient", ">Intitialize database");
-		
-			db.execSQL("CREATE TABLE table_session (ID INTEGER PRIMARY KEY AUTOINCREMENT, USER TEXT, PASSWORD TEXT, RESOURCE TEXT, DOMAIN TEXT, IP TEXT, PORT INTEGER);");
-			Log.d("jabberClient", "> Create table_session");
-		
-			db.execSQL("CREATE TABLE table_roster (ID INTEGER PRIMARY KEY AUTOINCREMENT, JID TEXT, NAME TEXT, CIRCLE TEXT);");
-			Log.d("jabberClient", "> Create table_roster");
-			
-			db.execSQL("CREATE TABLE table_message (ID INTEGER PRIMARY KEY AUTOINCREMENT, SENDER TEXT, RECEIVER TEXT, SUBJECT TEXT, BODY TEXT, THREAD TEXT, LOCAL INTEGER);");
-			Log.d("jabberClient", "> Create table_message");
-		} catch(SQLException e) {
-			Log.e("jabberClient", "Error: execSQL:CREATE " + e);
-			System.exit(1);
-		}
+		init();
 	}
 
 	/**
@@ -73,7 +57,7 @@ public class SQLController extends SQLiteOpenHelper {
 	 */
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-		Log.d("jabberClient", "> Reset database for upgrade");
+		/*Log.d("jabberClient", "> Reset database for upgrade");
 	
 		db.execSQL("DROP TABLE IF EXISTS table_session");
 		Log.d("jabberClient", "drop table_user");
@@ -81,7 +65,10 @@ public class SQLController extends SQLiteOpenHelper {
 		Log.d("jabberClient", "drop table_roster");
 		db.execSQL("DROP TABLE IF EXISTS table_message");
 		Log.d("jabberClient", "drop table_message");
-		onCreate(db);
+		onCreate(db);*/
+		
+		reset();
+		init();
 	}
 	
 	/**
@@ -101,8 +88,10 @@ public class SQLController extends SQLiteOpenHelper {
 				+ domain + "','" 
 				+ ip + "'," 
 				+ port + ")";
-				
-			Log.d("jabberClient", "execSQL: " + sqlExec);
+			
+			if(Constants.DEBUG)
+				Log.d("jabberClient", "execSQL: " + sqlExec);
+			
 			db.execSQL(sqlExec);
 			db.close();
 		} catch (Exception e) {
@@ -119,7 +108,8 @@ public class SQLController extends SQLiteOpenHelper {
 			Cursor c = db.rawQuery("SELECT USER, PASSWORD, RESOURCE, DOMAIN, IP, PORT FROM table_session", null);
 			if(c.moveToFirst()) {
 				do {
-					Log.d("jabberClient", "SELECT " + c.getString(0) + ", " + c.getString(1) + ", " + c.getString(2) + ", " + c.getString(3) + ", " + c.getString(4) + ", " + c.getInt(5));
+					if(Constants.DEBUG)
+						Log.d("jabberClient", "SELECT " + c.getString(0) + ", " + c.getString(1) + ", " + c.getString(2) + ", " + c.getString(3) + ", " + c.getString(4) + ", " + c.getInt(5));
 					session = new Session(c.getString(0), c.getString(1), c.getString(2), c.getString(3), c.getString(4), c.getInt(5));
 				} while(c.moveToNext());
 			}
@@ -145,8 +135,10 @@ public class SQLController extends SQLiteOpenHelper {
 				+ contact.getJid() + "','" 
 				+ (contact.getName() == null ? "" : contact.getName()) + "','" 
 				+ (contact.getGroup() == null ? "" : contact.getGroup()) + "')";
+			
+			if(Constants.DEBUG)
+				Log.d("jabberClient", "execSQL: " + sqlExec);
 				
-			Log.d("jabberClient", "execSQL: " + sqlExec);
 			db.execSQL(sqlExec);
 			db.close();
 		} catch (Exception e) {
@@ -160,7 +152,9 @@ public class SQLController extends SQLiteOpenHelper {
 			db = this.getWritableDatabase();
 			String sqlExec = "UPDATE ...";
 				
-			Log.d("jabberClient", "execSQL: " + sqlExec);
+			if(Constants.DEBUG)
+				Log.d("jabberClient", "execSQL: " + sqlExec);
+				
 			db.execSQL(sqlExec);
 			db.close();
 		} catch (Exception e) {
@@ -174,7 +168,9 @@ public class SQLController extends SQLiteOpenHelper {
 			db = this.getWritableDatabase();
 			String sqlExec = "DELETE FROM table_roster WHERE ID=" + id;
 				
-			Log.d("jabberClient", "execSQL: " + sqlExec);
+			if(Constants.DEBUG)
+				Log.d("jabberClient", "execSQL: " + sqlExec);
+				
 			db.execSQL(sqlExec);
 			db.close();
 		} catch (Exception e) {
@@ -191,7 +187,8 @@ public class SQLController extends SQLiteOpenHelper {
 			Cursor c = db.rawQuery("SELECT ID, JID, NAME, CIRCLE FROM table_roster WHERE ID=" + id, null);
 			if(c.moveToFirst()) {
 				do {
-					Log.d("jabberClient", "SELECT " + c.getInt(0) + ", " + c.getString(1) + ", " + c.getString(2) + ", " + c.getString(3));
+					if(Constants.DEBUG)
+						Log.d("jabberClient", "SELECT " + c.getInt(0) + ", " + c.getString(1) + ", " + c.getString(2) + ", " + c.getString(3));
 					contact = new Contact(c.getInt(0), c.getString(1), c.getString(2), c.getString(3));
 				} while(c.moveToNext());
 			}
@@ -215,6 +212,8 @@ public class SQLController extends SQLiteOpenHelper {
 			if(c.moveToFirst()) {
 				do {
 					// ID, JID, NAME, GROUP
+					if(Constants.DEBUG)
+						Log.d("jabberClient", "SELECT " + c.getInt(0) + ", " + c.getString(1) + ", " + c.getString(2) + ", " + c.getString(3));
 					contacts.add(new Contact(c.getInt(0), c.getString(1), c.getString(2), c.getString(3)));
 				} while(c.moveToNext());
 			}
@@ -244,7 +243,9 @@ public class SQLController extends SQLiteOpenHelper {
 				+ message.getThread() + "',"
 				+ ((message.isLocal()) ? 1 : 0) + ")";
 				
-			Log.d("jabberClient", "execSQL: " + sqlExec);
+			if(Constants.DEBUG)
+				Log.d("jabberClient", "execSQL: " + sqlExec);
+				
 			db.execSQL(sqlExec);
 			db.close();
 		} catch (Exception e) {
@@ -261,6 +262,8 @@ public class SQLController extends SQLiteOpenHelper {
 			Cursor c = db.rawQuery("SELECT SENDER, RECEIVER, SUBJECT, BODY, THREAD, LOCAL FROM table_message WHERE SENDER LIKE '" + jid + "%' OR RECEIVER LIKE '" + jid + "%'", null);
 			if(c.moveToFirst()){
 				do {
+					if(Constants.DEBUG)
+						Log.d("jabberClient", "SELECT " + c.getString(0) + ", " + c.getString(1) + ", " + c.getString(2) + ", " + c.getString(3) + ", " + c.getString(4) + ", " + (c.getInt(5) != 0));
 					messages.add(new Message(c.getString(0), c.getString(1), c.getString(2), c.getString(3), c.getString(4), (c.getInt(5) != 0)));
 				} while(c.moveToNext());
 			}
@@ -277,19 +280,51 @@ public class SQLController extends SQLiteOpenHelper {
 	/**
 	 * DATABASE
 	 */
+	 
+	public void init() {
+		try {
+			Log.d("jabberClient", "> Intitialize database");
+			db = this.getWritableDatabase();
+			
+			db.execSQL("CREATE TABLE table_session (ID INTEGER PRIMARY KEY AUTOINCREMENT, USER TEXT, PASSWORD TEXT, RESOURCE TEXT, DOMAIN TEXT, IP TEXT, PORT INTEGER);");
+			Log.d("jabberClient", "> Create table_session");
+		
+			db.execSQL("CREATE TABLE table_roster (ID INTEGER PRIMARY KEY AUTOINCREMENT, JID TEXT, NAME TEXT, CIRCLE TEXT);");
+			Log.d("jabberClient", "> Create table_roster");
+			
+			db.execSQL("CREATE TABLE table_message (ID INTEGER PRIMARY KEY AUTOINCREMENT, SENDER TEXT, RECEIVER TEXT, SUBJECT TEXT, BODY TEXT, THREAD TEXT, LOCAL INTEGER);");
+			Log.d("jabberClient", "> Create table_message");
+			
+			db.close();
+		} catch(SQLException e) {
+			Log.e("jabberClient", "Error: execSQL:CREATE " + e);
+		}
+	}
+	 
 	public void reset() {
 		Log.d("jabberClient", "> Reset database");
 		try {
 			db = this.getWritableDatabase();
 			String sqlExec = "";
+			
+			Log.d("jabberClient", "> Drop table_session");
 			sqlExec = "DROP TABLE IF EXISTS table_session";	
-			Log.d("jabberClient", "execSQL: " + sqlExec);
+			db.execSQL(sqlExec);
+			if(Constants.DEBUG)
+				Log.d("jabberClient", "execSQL: " + sqlExec);
+			
+			Log.d("jabberClient", "> Drop table_roster");
 			sqlExec = "DROP TABLE IF EXISTS table_roster";	
-			Log.d("jabberClient", "execSQL: " + sqlExec);
 			db.execSQL(sqlExec);
+			if(Constants.DEBUG)
+				Log.d("jabberClient", "execSQL: " + sqlExec);
+			
+			Log.d("jabberClient", "> Drop table_message");
 			sqlExec = "DROP TABLE IF EXISTS table_message";	
-			Log.d("jabberClient", "execSQL: " + sqlExec);
 			db.execSQL(sqlExec);
+			if(Constants.DEBUG)
+				Log.d("jabberClient", "execSQL: " + sqlExec);
+			
 			db.close();
 		} catch (Exception e) {
 			Log.e("jabberClient", "Error: execSQL:DROP " + e.toString());

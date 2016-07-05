@@ -10,6 +10,8 @@ final public class Constants {
 	 * OTHER
 	 */
 	public static final String LOG_TAG 				= "jabberClient";
+	
+	public static final boolean DEBUG				= false;
 
 	/**
 	 * NAMESPACES

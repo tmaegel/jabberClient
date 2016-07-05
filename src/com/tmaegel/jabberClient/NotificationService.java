@@ -67,7 +67,7 @@ public class NotificationService extends Service  {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(Constants.LOG_TAG, "Received start id " + startId + ": " + intent);
+        Log.d(Constants.LOG_TAG, "> Received start id " + startId);
 
         parser = new Parser();
 
@@ -76,9 +76,10 @@ public class NotificationService extends Service  {
 
                 try {
 
-        			// InetAddress serverAddr = InetAddress.getByName(serverIpAddr);
-        			Log.d(Constants.LOG_TAG, "> Open socket to " + MainActivity.instance.session.ip + ":" + MainActivity.instance.session.port);
-        			socket = new Socket(MainActivity.instance.session.ip, MainActivity.instance.session.port);
+        			Log.d(Constants.LOG_TAG, "> Address is " + MainActivity.instance.session.domain + ":" + MainActivity.instance.session.port);
+        			Log.d(Constants.LOG_TAG, "> Open socket to " + InetAddress.getByName(MainActivity.instance.session.domain).getHostAddress() + ":" + MainActivity.instance.session.port);
+
+        			socket = new Socket(InetAddress.getByName(MainActivity.instance.session.domain).getHostAddress(), MainActivity.instance.session.port);
 
         			input = socket.getInputStream();
         			output = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
@@ -235,7 +236,7 @@ public class NotificationService extends Service  {
 						break;
 				}
 			} else {
-				Log.d(Constants.LOG_TAG, "No stanza object received");
+				Log.d(Constants.LOG_TAG, "> No stanza object received");
 			}
 		}
 	}

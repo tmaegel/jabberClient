@@ -7,26 +7,36 @@
 		<EditTextPreference
 				android:id="@+id/pref_user_name" 
 				android:title="@string/pref_user_name" 
-				android:summary="@string/pref_user_name_summary"/>
+				android:summary="@string/pref_user_name_summary"
+				android:defaultValue="username"
+				android:key="prefUsername"/>
 
 		<EditTextPreference
 				android:id="@+id/pref_password" 
-				android:title="@string/pref_password"/>
+				android:title="@string/pref_password"
+				android:defaultValue="password"
+				android:key="prefPassword"/>
 
 		<EditTextPreference 
 				android:id="@+id/pref_resource" 
 				android:title="@string/pref_resource" 
-				android:summary="@string/pref_resource_summary"/>
+				android:summary="@string/pref_resource_summary"
+				android:defaultValue="resource"
+				android:key="prefResource"/>
 
 		<EditTextPreference 
 				android:id="@+id/pref_server" 
 				android:title="@string/pref_server" 
-				android:summary="@string/pref_server_summary"/>
+				android:summary="@string/pref_server_summary"
+				android:defaultValue="server"
+				android:key="prefServer"/>
 
 		<EditTextPreference 
 				android:id="@+id/pref_port"  
 				android:title="@string/pref_port" 
-				android:summary="@string/pref_port_summary"/>
+				android:summary="@string/pref_port_summary"
+				android:defaultValue="port"
+				android:key="prefPort"/>
 
 	</PreferenceCategory>
 

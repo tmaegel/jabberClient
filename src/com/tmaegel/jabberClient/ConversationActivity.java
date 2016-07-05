@@ -88,7 +88,7 @@ public class ConversationActivity extends Activity {
 
     @Override
     protected void onPause() {
-		LocalBroadcastManager.getInstance(this).unregisterReceiver(messageReceiver);
 		super.onPause();
+		// LocalBroadcastManager.getInstance(this).unregisterReceiver(messageReceiver);
     }
 }

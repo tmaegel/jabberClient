@@ -37,20 +37,20 @@
 	<!-- Preferences activity -->
 	<string name="pref_account_settings">Account settings</string>
 	<string name="pref_user_name">Username</string>
-	<string name="pref_user_name_summary">Username description</string>
+	<string name="pref_user_name_summary">Username</string>
 	<string name="pref_password">Password</string>
 	<string name="pref_resource">Resource</string>
-	<string name="pref_resource_summary">Resource description</string>
+	<string name="pref_resource_summary">Resource e.g. Smartphone</string>
 	<string name="pref_server">Server</string>
-	<string name="pref_server_summary">Server description</string>
+	<string name="pref_server_summary">Server ip or domain</string>
 	<string name="pref_port">Port</string>
-	<string name="pref_port_summary">Port description</string>
+	<string name="pref_port_summary">Port (default:5222)</string>
 
 	<string name="pref_about">About</string>
 	<string name="pref_version">Version</string>
-	<string name="pref_version_summary">Version description</string>
+	<string name="pref_version_summary">v0.1</string>
 	<string name="pref_author">Author</string>
-	<string name="pref_author_summary">Author description</string>
+	<string name="pref_author_summary">Toni Mägel</string>
 
 	<!-- Add contact activity -->
 	<string name="acont_name">Name</string>
