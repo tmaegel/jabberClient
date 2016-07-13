@@ -154,13 +154,26 @@ public class NotificationService extends Service  {
                 for(int i = 0; i < stanza.items.size(); i++) {
                 	MainActivity.instance.dbCon.insertContact(stanza.items.get(i));
                 }
-                Intent rosterIntent = new Intent("service-broadcast");
-            	rosterIntent.putExtra("update-contact", 1);
-            	LocalBroadcastManager.getInstance(this).sendBroadcast(rosterIntent);
+                /**< Mechanism is necessary because gui updated within thread */
+                Intent rosterUpdateIntent = new Intent("service-broadcast");
+            	rosterUpdateIntent.putExtra("update-contact", 1);
+            	LocalBroadcastManager.getInstance(this).sendBroadcast(rosterUpdateIntent);
 				break;
 			case Constants.S_ROSTER_PUSH:
-				/*stanza.items.addAll(main.contacts);
-				main.listAdapter.notifyDataSetChanged();*/
+				/**< set roster */
+				MainActivity.instance.dbCon.insertContact(stanza.items.get(0));
+				/**< Mechanism is necessary because gui updated within thread */
+				Intent rosterSetIntent = new Intent("service-broadcast");
+            	rosterSetIntent.putExtra("update-contact", 1);
+            	LocalBroadcastManager.getInstance(this).sendBroadcast(rosterSetIntent);
+				break;
+			case Constants.S_ROSTER_REMOVE:
+				/**< remove roster */
+				MainActivity.instance.dbCon.removeContact(stanza.items.get(0).jid);
+				/**< Mechanism is necessary because gui updated within thread */
+				Intent rosterRemoveIntent = new Intent("service-broadcast");
+            	rosterRemoveIntent.putExtra("update-contact", 1);
+            	LocalBroadcastManager.getInstance(this).sendBroadcast(rosterRemoveIntent);
 				break;
 			case Constants.S_ROSTER_ERROR:
 
@@ -199,8 +212,13 @@ public class NotificationService extends Service  {
 							Log.d(Constants.LOG_TAG, "> Received roster result");
                             publishProgress(Constants.S_ROSTER_RESPONSE);
 						} else if(stanza.type.equals("set")) {
-							Log.d(Constants.LOG_TAG, "> Received roster push");
-						    publishProgress(Constants.S_ROSTER_PUSH);
+							if(stanza.items.get(0).subscription.equals("remove")) {
+								Log.d(Constants.LOG_TAG, "> Received roster push-remove");
+								publishProgress(Constants.S_ROSTER_REMOVE);
+							} else {
+								Log.d(Constants.LOG_TAG, "> Received roster push");
+								publishProgress(Constants.S_ROSTER_PUSH);
+							}
 						} else if(stanza.type.equals("error")) {
 							Log.d(Constants.LOG_TAG, "> Received roster error");
 						    publishProgress(Constants.S_ROSTER_ERROR);

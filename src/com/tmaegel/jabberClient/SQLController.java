@@ -127,7 +127,13 @@ public class SQLController extends SQLiteOpenHelper {
 	 * CONTACT
 	 */
 	public void insertContact(Contact contact) {
+		if(selectContact(contact.jid) != null) {
+			Log.d("jabberClient", "> Contact does exists");
+			return;
+		}
+		
 		Log.d("jabberClient", "> Insert contact in db");
+		
 		try {
 			db = this.getWritableDatabase();
 			String sqlExec = "INSERT INTO table_roster VALUES (" 
@@ -178,6 +184,22 @@ public class SQLController extends SQLiteOpenHelper {
 		}
 	}
 	
+	public void removeContact(String jid) {
+		Log.d("jabberClient", "> Remove contact from db with jid " + jid);
+		try {
+			db = this.getWritableDatabase();
+			String sqlExec = "DELETE FROM table_roster WHERE JID='" + jid + "'";
+				
+			if(Constants.DEBUG)
+				Log.d("jabberClient", "execSQL: " + sqlExec);
+				
+			db.execSQL(sqlExec);
+			db.close();
+		} catch (Exception e) {
+			Log.e("jabberClient", "Error: execSQL:DELETE " + e.toString());
+		}
+	}
+	
 	public Contact selectContact(int id) {
 		Log.d("jabberClient", "> Select contact by id " + id + " from db");
 		Contact contact = null;
@@ -185,6 +207,30 @@ public class SQLController extends SQLiteOpenHelper {
 			
 			db = this.getReadableDatabase();
 			Cursor c = db.rawQuery("SELECT ID, JID, NAME, CIRCLE FROM table_roster WHERE ID=" + id, null);
+			if(c.moveToFirst()) {
+				do {
+					if(Constants.DEBUG)
+						Log.d("jabberClient", "SELECT " + c.getInt(0) + ", " + c.getString(1) + ", " + c.getString(2) + ", " + c.getString(3));
+					contact = new Contact(c.getInt(0), c.getString(1), c.getString(2), c.getString(3));
+				} while(c.moveToNext());
+			}
+			c.close();
+			db.close();
+			
+		} catch (Exception e) {
+			Log.e("jabberClient", "Error: rawQuery:SELECT " + e.toString());
+		}
+		
+		return contact;
+	}
+	
+	public Contact selectContact(String jid) {
+		Log.d("jabberClient", "> Select contact by jid " + jid + " from db");
+		Contact contact = null;
+		try {
+			
+			db = this.getReadableDatabase();
+			Cursor c = db.rawQuery("SELECT ID, JID, NAME, CIRCLE FROM table_roster WHERE JID='" + jid + "'", null);
 			if(c.moveToFirst()) {
 				do {
 					if(Constants.DEBUG)

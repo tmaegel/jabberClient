@@ -11,7 +11,7 @@ final public class Constants {
 	 */
 	public static final String LOG_TAG 				= "jabberClient";
 	
-	public static final boolean DEBUG				= false;
+	public static final boolean DEBUG				= true;
 
 	/**
 	 * NAMESPACES
@@ -56,6 +56,7 @@ final public class Constants {
 	/**< Server side */
 	public static final int S_ROSTER_RESPONSE		= 25;			/**< type=result */
 	public static final int S_ROSTER_PUSH			= 26;			/**< type=set */
+	public static final int S_ROSTER_REMOVE			= 27;			/**< type=set, subscription=remove */
 	public static final int S_ROSTER_ERROR			= 28;			/**< type=error */
 
 	/** Client side */
