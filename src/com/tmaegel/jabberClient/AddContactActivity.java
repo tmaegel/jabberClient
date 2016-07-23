@@ -29,6 +29,21 @@ public class AddContactActivity extends Activity {
 		jidText = (EditText)findViewById(R.id.acont_jid_edit);
 		nameText = (EditText)findViewById(R.id.acont_name_edit);
 		groupText = (EditText)findViewById(R.id.acont_group_edit);
+		
+		int contactId;
+		Bundle bundle = getIntent().getExtras();
+        if(bundle != null) {
+        	contactId = bundle.getInt("contact-id");
+        	
+        	if(contactId > 0) {
+        		Contact contact = MainActivity.instance.dbCon.selectContact(contactId);
+        		jidText.setText(contact.jid, TextView.BufferType.EDITABLE);
+        		jidText.setEnabled(false);
+        		nameText.setText(contact.name, TextView.BufferType.EDITABLE);
+        		groupText.setText(contact.group, TextView.BufferType.EDITABLE);
+        	}
+        }
+
 	}
 
 	/** Called when create menu  */

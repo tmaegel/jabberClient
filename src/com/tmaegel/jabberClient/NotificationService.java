@@ -70,6 +70,8 @@ public class NotificationService extends Service  {
         Log.d(Constants.LOG_TAG, "> Received start id " + startId);
 
         parser = new Parser();
+        
+        MainActivity.instance.session = MainActivity.instance.dbCon.selectSession();
 
         Runnable r = new Runnable() {
             public void run() {
@@ -94,6 +96,8 @@ public class NotificationService extends Service  {
                             Log.d(Constants.LOG_TAG, "> Waiting...");
                             Thread.sleep(1000);
                         }
+
+						Log.d(Constants.LOG_TAG, "> Trying to authenticate with jid " + MainActivity.instance.session.user + "@" + MainActivity.instance.session.domain + "/" + MainActivity.instance.session.resource);
 
 						initialized = XMPP.initialize(
 							MainActivity.instance.session.user, 

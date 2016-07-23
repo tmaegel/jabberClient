@@ -70,6 +70,7 @@ final public class Constants {
 	static final int ADD_ROSTER_ITEM 		= 1;	/**< Add roster item */
 	static final int DEL_ROSTER_ITEM 		= 2;	/**< Delete roster item */
 	static final int UPD_ROSTER_ITEM 		= 3;	/**< Update roster item */
-	static final int START_CONVERSATION		= 4;
+	static final int RECONNECT_XMPP 		= 4;	/**< Update roster item */
+	static final int START_CONVERSATION		= 5;
 
 }

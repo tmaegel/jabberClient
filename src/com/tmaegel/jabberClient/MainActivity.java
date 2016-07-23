@@ -50,6 +50,7 @@ public class MainActivity extends Activity {
 	public SQLController dbCon;
 
 	// intents
+	public Intent serviceInt;
 	public Intent convInt;
 	public Intent setStatInt;
 	public Intent prefInt;
@@ -76,9 +77,9 @@ public class MainActivity extends Activity {
 		
 		// Service
 		LocalBroadcastManager.getInstance(this).registerReceiver(serviceReceiver, new IntentFilter("service-broadcast"));
-		Intent intent = new Intent(this, NotificationService.class);
-		bindService(intent, myConnection, Context.BIND_AUTO_CREATE);
-		startService(intent);
+		Intent serviceInt = new Intent(this, NotificationService.class);
+		bindService(serviceInt, myConnection, Context.BIND_AUTO_CREATE);
+		startService(serviceInt);
 
 		setStatInt = new Intent(this, SetStatusActivity.class);
 		prefInt = new Intent(this, PreferencesActivity.class);
@@ -171,14 +172,20 @@ public class MainActivity extends Activity {
 			/** Edit contact */
 			case R.id.context_edit:
 				Log.d(Constants.LOG_TAG, "> Edit roster item");
+				Intent uptContInt = new Intent(this, AddContactActivity.class);
+				AdapterContextMenuInfo updInfo = (AdapterContextMenuInfo) item.getMenuInfo();
+				int uptId = contacts.get(updInfo.position).id;
+				Log.d(Constants.LOG_TAG, "> Update roster item with id " + uptId);
+				uptContInt.putExtra("contact-id", uptId);		
+				startActivityForResult(uptContInt, Constants.UPD_ROSTER_ITEM);
 				return true;
 			/** Delete contact */
 			case R.id.context_delete:
-				AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
-				int id = contacts.get(info.position).id;
-				Log.d(Constants.LOG_TAG, "> Remove roster item with id " + id);
-				XMPP.delRoster(dbCon.selectContact(id));
-				dbCon.removeContact(id);
+				AdapterContextMenuInfo delInfo = (AdapterContextMenuInfo) item.getMenuInfo();
+				int delId = contacts.get(delInfo.position).id;
+				Log.d(Constants.LOG_TAG, "> Remove roster item with id " + delId);
+				XMPP.delRoster(dbCon.selectContact(delId));
+				dbCon.removeContact(delId);
 				refreshContactList();
 				return true;
 			/** Default */
@@ -193,7 +200,9 @@ public class MainActivity extends Activity {
 		switch (item.getItemId()) {
 			/** Add contact */
 			case R.id.opt_add_contact:
+				Log.d(Constants.LOG_TAG, "> Add roster item");
 				Intent addContInt = new Intent(this, AddContactActivity.class);
+				addContInt.putExtra("contact-id", 0);
 				startActivityForResult(addContInt, Constants.ADD_ROSTER_ITEM);
 				return true;
 			/** Add conference */
@@ -206,7 +215,7 @@ public class MainActivity extends Activity {
 				return true;
 			/** Preferences */
 			case R.id.opt_settings:
-				startActivity(prefInt);
+				startActivityForResult(prefInt, Constants.RECONNECT_XMPP);
 				return true;
 			/** Default */
 			default:
@@ -248,14 +257,23 @@ public class MainActivity extends Activity {
 					refreshContactList();
 				}
 				break;
-			case Constants.DEL_ROSTER_ITEM:
-				if (resultCode == RESULT_OK) {
-					
-				}
-				break;
 			case Constants.UPD_ROSTER_ITEM:
 				if (resultCode == RESULT_OK) {
+					Contact contact = new Contact(data.getStringExtra("jid"), data.getStringExtra("name"), data.getStringExtra("group"));
+					XMPP.updateRoster(contact);
+					MainActivity.instance.dbCon.updateContact(contact);
+					refreshContactList();
+				}
+			case Constants.RECONNECT_XMPP:
+				if (resultCode == RESULT_OK) {
+					Log.d(Constants.LOG_TAG, "> Reconnect...");
+					dbCon.updateSession(data.getStringExtra("user"), data.getStringExtra("password"), data.getStringExtra("resource"), data.getStringExtra("ip"), data.getIntExtra("port", 5222));
+					dbCon.selectSession();
+					//stopService(serviceInt);
+					//startService(serviceInt);
 					
+					stopService(new Intent(this, NotificationService.class));
+					startService(new Intent(this, NotificationService.class));
 				}
 				break;
 		}

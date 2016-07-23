@@ -23,7 +23,7 @@ public class SQLController extends SQLiteOpenHelper {
 	private static final int DB_VERSION = 19;
 
 	// Database reset
-	private static final boolean DB_RESET = true;
+	private static final boolean DB_RESET = false;
 	
 	public SQLController(Context context) {
 		super(context, DB_NAME, null, DB_VERSION);
@@ -32,9 +32,6 @@ public class SQLController extends SQLiteOpenHelper {
 			reset();
 			init();
 		}
-		
-		// default setting
-		insertSession("user", "123456", "my-resource", "maegel-online.de", "37.187.216.212", 5222);
 
 		/*try {
 			database = getWritableDatabase();
@@ -99,13 +96,30 @@ public class SQLController extends SQLiteOpenHelper {
 		}
 	}
 	
+	/**< @todo: password - salt or peper */
+	public void updateSession(String user, String password, String resource, String ip, int port) {
+		Log.d("jabberClient", "> Update session in db");
+		try {
+			db = this.getWritableDatabase();
+			String sqlExec = "UPDATE table_session SET USER='" + user + "', PASSWORD='" + password + "', RESOURCE='" + resource + "', IP='" + ip + "', PORT=" + port + " WHERE ID=1";
+			
+			if(Constants.DEBUG)
+				Log.d("jabberClient", "execSQL: " + sqlExec);
+			
+			db.execSQL(sqlExec);
+			db.close();
+		} catch (Exception e) {
+			Log.e("jabberClient", "Error: execSQL:INSERT " + e.toString());
+		}
+	}
+	
 	public Session selectSession() {
 		Log.d("jabberClient", "> Select session from db");
 		Session session = null;
 		try {
 			
 			db = this.getReadableDatabase();
-			Cursor c = db.rawQuery("SELECT USER, PASSWORD, RESOURCE, DOMAIN, IP, PORT FROM table_session", null);
+			Cursor c = db.rawQuery("SELECT USER, PASSWORD, RESOURCE, DOMAIN, IP, PORT FROM table_session WHERE ID=1", null);
 			if(c.moveToFirst()) {
 				do {
 					if(Constants.DEBUG)
@@ -156,7 +170,7 @@ public class SQLController extends SQLiteOpenHelper {
 		Log.d("jabberClient", "> Update contact in db");
 		try {
 			db = this.getWritableDatabase();
-			String sqlExec = "UPDATE ...";
+			String sqlExec = "UPDATE table_roster SET NAME='" + contact.name + "', CIRCLE='" + contact.group + "' WHERE JID='" + contact.jid + "'";
 				
 			if(Constants.DEBUG)
 				Log.d("jabberClient", "execSQL: " + sqlExec);
@@ -340,6 +354,9 @@ public class SQLController extends SQLiteOpenHelper {
 			
 			db.execSQL("CREATE TABLE table_message (ID INTEGER PRIMARY KEY AUTOINCREMENT, SENDER TEXT, RECEIVER TEXT, SUBJECT TEXT, BODY TEXT, THREAD TEXT, LOCAL INTEGER);");
 			Log.d("jabberClient", "> Create table_message");
+			
+			// default setting
+			insertSession("user", "123456", "my-resource", "maegel-online.de", "37.187.216.212", 5222);
 			
 			db.close();
 		} catch(SQLException e) {

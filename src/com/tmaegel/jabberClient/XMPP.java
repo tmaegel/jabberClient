@@ -195,6 +195,40 @@ final public class XMPP {
     }
     
     /**
+     * @brief update roster
+     * @todo id generation
+     */
+    public static final void updateRoster(Contact contact) {
+        Log.d(Constants.LOG_TAG, "> XMPP: Update roster");
+
+		if(contact != null) {
+		    String id = "xyz123";
+		    if(contact.jid != null) {
+		        String rosterStr = "<iq from='" + MainActivity.instance.session.getFullJid() + "' type='set' id='" + id + "'><query xmlns='jabber:iq:roster'><item jid='" + contact.jid + "'";
+		        if(contact.name != null) {
+		            rosterStr = rosterStr + " name='" + contact.name + "'";
+		        } else {
+		        	rosterStr = rosterStr + " name=''";
+		        }
+		        
+		        if(contact.group == null) {
+		            rosterStr = rosterStr + "/>";
+		        } else {
+		            rosterStr = rosterStr + "><group>" + contact.group + "</group></item>";
+		        }
+		        rosterStr = rosterStr + "</query></iq>";
+
+		        Log.d(Constants.LOG_TAG, ">> Update roster item");
+		        MainActivity.instance.notificationService.writeStream(rosterStr);
+		    } else {
+		        Log.d(Constants.LOG_TAG, ">> Jid is empty. No Roster update.");
+		    }
+		} else {
+			Log.d(Constants.LOG_TAG, ">> No roster item found.");
+		}
+    }
+    
+    /**
      * @brief Remove roster
      * @todo id generation
      */
