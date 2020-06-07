@@ -1,3 +1,3 @@
-# xmmpClient
+# xmppClient
 
 An unfinished xmpp client for android written in Java.
