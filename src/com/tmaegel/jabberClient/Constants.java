@@ -67,10 +67,10 @@ final public class Constants {
 	/**
 	 * REQUEST CODE OF CHILD ACTIVITIES
 	 */
-	static final int ADD_ROSTER_ITEM 		= 1;	/**< Add roster item */
-	static final int DEL_ROSTER_ITEM 		= 2;	/**< Delete roster item */
-	static final int UPD_ROSTER_ITEM 		= 3;	/**< Update roster item */
-	static final int RECONNECT_XMPP 		= 4;	/**< Update roster item */
-	static final int START_CONVERSATION		= 5;
+	static final int ADD_ROSTER_ITEM 		= 100;	/**< Add roster item */
+	static final int DEL_ROSTER_ITEM 		= 101;	/**< Delete roster item */
+	static final int UPD_ROSTER_ITEM 		= 102;	/**< Update roster item */
+	static final int RECONNECT_XMPP 		= 103;	/**< Reconnect item */
+	static final int START_CONVERSATION		= 104;
 
 }

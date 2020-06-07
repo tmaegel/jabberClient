@@ -356,7 +356,7 @@ public class SQLController extends SQLiteOpenHelper {
 			Log.d("jabberClient", "> Create table_message");
 			
 			// default setting
-			insertSession("user", "123456", "my-resource", "maegel-online.de", "37.187.216.212", 5222);
+			insertSession("user", "123456", "my-resource", "localhost", "192.168.178.103"", 5222);
 			
 			db.close();
 		} catch(SQLException e) {

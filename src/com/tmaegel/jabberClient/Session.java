@@ -18,6 +18,9 @@ final public class Session {
 		this.domain = domain;
 		this.ip = ip;
 		this.port = port; 
+		
+		MainActivity.instance.dbCon.updateSession(user, password, resource, ip, port);
+					
     }
 
     public String getJid() {

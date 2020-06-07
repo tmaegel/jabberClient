@@ -41,6 +41,10 @@ import android.net.ConnectivityManager;
 
 import android.support.v4.content.LocalBroadcastManager;
 
+/**
+ * @brief: Hauptklasse, Main activity
+ * @details: Startet und initialisiert u.a. NotificationService, SQLController ... 
+ */
 public class MainActivity extends Activity {
 
 	public static MainActivity instance = null;
@@ -72,7 +76,7 @@ public class MainActivity extends Activity {
 		dbCon = new SQLController(this);
 		
 		// Session, only for client to server communication, 5269 for server to server communication
-		// session = new Session("user1", "123456", "my-resource", "localhost", "192.168.178.103", 5222);
+        session = new Session("user1", "123456", "my-resource", "localhost", "192.168.178.103", 5222);
 		session = dbCon.selectSession();
 		
 		// Service
@@ -264,11 +268,12 @@ public class MainActivity extends Activity {
 					MainActivity.instance.dbCon.updateContact(contact);
 					refreshContactList();
 				}
+				break;
 			case Constants.RECONNECT_XMPP:
 				if (resultCode == RESULT_OK) {
 					Log.d(Constants.LOG_TAG, "> Reconnect...");
 					dbCon.updateSession(data.getStringExtra("user"), data.getStringExtra("password"), data.getStringExtra("resource"), data.getStringExtra("ip"), data.getIntExtra("port", 5222));
-					dbCon.selectSession();
+					//dbCon.selectSession();
 					//stopService(serviceInt);
 					//startService(serviceInt);
 					
